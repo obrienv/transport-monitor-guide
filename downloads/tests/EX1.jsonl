@@ -1,0 +1,22 @@
+{"comment":"Example test file for the invented feature EX1. One JSON object per line."}
+{"comment":"A line with 'test' starts a new test. 'send' is the message to the board. 'expect' lists only the fields that must match in the reply."}
+{"test":"EX1-T1","covers":["EX1-R1","EX1-R2"]}
+{"send":{"cmd":"test.enter"},"expect":{"ok":true}}
+{"send":{"cmd":"ui.action","action":"restore_defaults"},"expect":{"ok":true}}
+{"send":{"cmd":"case.reset"},"expect":{"ok":true}}
+{"send":{"cmd":"settings.set","key":"humidity_clear_pct","value":65},"expect":{"ok":true}}
+{"send":{"cmd":"samples.update","t_ms":0,"samples":{"temperature":{"valid":true,"value":22},"humidity":{"valid":true,"value":50},"accel":{"valid":true,"value":[0,0,1]},"gyro":{"valid":true,"value":[0,0,0]}}},"expect":{"state":{"mode":"NORMAL","causes":[]}}}
+{"send":{"cmd":"samples.update","t_ms":100,"samples":{"humidity":{"valid":true,"value":71}}},"expect":{"state":{"mode":"ALARM","causes":["HUMID_HIGH"]}}}
+{"send":{"cmd":"samples.update","t_ms":200,"samples":{"humidity":{"valid":true,"value":66}}},"expect":{"state":{"causes":["HUMID_HIGH"]}}}
+{"send":{"cmd":"samples.update","t_ms":300,"samples":{"humidity":{"valid":true,"value":65}}},"expect":{"state":{"mode":"NORMAL","causes":[]}}}
+{"test":"EX1-T2","covers":["EX1-R3"]}
+{"send":{"cmd":"case.reset"},"expect":{"ok":true}}
+{"send":{"cmd":"settings.set","key":"humidity_clear_pct","value":70},"expect":{"ok":false,"error":{"code":"bad_value"}}}
+{"send":{"cmd":"settings.set","key":"humidity_clear_pct","value":69},"expect":{"ok":true,"state":{"settings":{"humidity_clear_pct":69}}}}
+{"test":"EX1-T3","covers":["EX1-R4"]}
+{"send":{"cmd":"ui.action","action":"restore_defaults"},"expect":{"ok":true}}
+{"send":{"cmd":"case.reset"},"expect":{"ok":true}}
+{"send":{"cmd":"settings.set","key":"humidity_clear_pct","value":65},"expect":{"ok":true}}
+{"send":{"cmd":"samples.update","t_ms":0,"samples":{"temperature":{"valid":true,"value":22},"humidity":{"valid":true,"value":71},"accel":{"valid":true,"value":[0,0,1]},"gyro":{"valid":true,"value":[0,0,0]}}},"expect":{"state":{"causes":["HUMID_HIGH"]}}}
+{"send":{"cmd":"samples.update","t_ms":100,"samples":{"humidity":{"valid":false,"value":null}}},"expect":{"state":{"mode":"FAULT","causes":[],"faults":[{"group":"humidity","reason":"invalid"}]}}}
+{"send":{"cmd":"samples.update","t_ms":200,"samples":{"humidity":{"valid":true,"value":68}}},"expect":{"state":{"mode":"NORMAL","causes":[]}}}
