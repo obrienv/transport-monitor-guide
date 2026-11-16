@@ -113,6 +113,7 @@ function refresh() {
   if (!challenges && standard) band += " The core and standard band reaches 75%.";
   document.querySelector("#band").textContent = band;
   download.disabled = !menuSettings(items);
+  document.querySelector("#open-workbook").disabled = download.disabled;
   const savedPlan = saveList("plan",selected);
   const savedSources = saveList("menu-settings",sources);
   document.querySelector("#download-note").textContent = download.disabled ? "Choose the features supplying your P02 settings." : (!savedPlan || !savedSources ? "Selections last for this visit." : "");
@@ -140,6 +141,10 @@ download.addEventListener("click", () => {
   link.href = url; link.download = "REQUIREMENTS_AND_TESTS.md"; document.body.append(link); link.click(); link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30000);
   document.querySelector("#download-note").textContent = "Plan downloaded. Fill in the requirements and tests for each feature.";
+});
+document.querySelector("#open-workbook").addEventListener("click", () => {
+  const params = new URLSearchParams({features:plan().map(f=>f.id).join(","), settings:[...sources].join(",")});
+  location.href = "workbook.html?" + params;
 });
 buildOptions();
 refresh();

@@ -1,0 +1,27 @@
+.workbook > h1 { margin-bottom:.15em }
+.wb-tools { display:flex; flex-wrap:wrap; gap:8px; margin:22px 0 4px }
+.workbook button,.file-button { display:inline-block; font:inherit; font-size:.94rem; color:var(--blue); background:white; border:1px solid #a7bdd1; border-radius:5px; padding:8px 14px; cursor:pointer }
+.workbook button:hover,.file-button:hover { background:var(--tint) }
+.workbook button.primary { background:var(--blue); color:white; border-color:var(--blue) }
+.file-button { position:relative; overflow:hidden }.file-button input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100% }.file-button:focus-within { outline:3px solid #ad5b00 }
+#save-state { color:var(--muted); font-size:.93rem; margin:8px 0 22px }
+#pending:not(:empty),#notice:not(:empty) { padding:14px; background:#fff5db; margin-bottom:15px } #pending button { margin:0 6px 4px 0 }
+.wb-layout { display:grid; grid-template-columns:minmax(180px,235px) minmax(0,1fr); gap:28px; border-top:1px solid var(--line); padding-top:22px }
+.wb-list { background:#f3f7fb; align-self:start; padding:17px; border-radius:6px }.wb-list h2,#editor h2 { margin:0 0 8px; border:0 }
+#feature-list { display:grid; gap:4px; max-height:63vh; overflow:auto; margin-top:15px }
+#feature-list button { display:flex; justify-content:space-between; align-items:center; text-align:left; padding:8px; border:1px solid transparent; background:transparent }
+#feature-list button[aria-current] { background:white; border-color:#9eb6ce; font-weight:bold } #feature-list small { font-size:.76rem }
+#feature-list button { flex-wrap:wrap }
+.feature-name { display:block; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.83rem; font-weight:400; color:var(--muted) }
+#editor { min-width:0 } #editor h2 { font-size:1.55rem; max-width:42ch }
+.wb-tabs { display:flex; gap:4px; flex-wrap:wrap; border-bottom:1px solid var(--line); margin:12px 0 18px }
+.wb-tabs button { border:0; border-bottom:3px solid transparent; border-radius:0 } .wb-tabs button[aria-pressed=true] { color:var(--ink); font-weight:700; border-bottom-color:var(--blue) }
+.wb-field { display:grid; gap:4px; margin:12px 0 }.wb-field span { font-weight:650 }
+.wb-field textarea,.wb-field select { font:inherit; background:white; color:var(--ink); padding:8px 10px; border:1px solid #97aabc; border-radius:4px; width:100%; resize:vertical }
+.entry { padding:12px 18px; margin:12px 0; border:1px solid var(--line); border-radius:5px }
+.entry h3 { margin:0; font:650 1rem Consolas,monospace; color:var(--blue) }
+.workbook .quiet { display:block; margin-top:8px; border:0; padding:4px 0; font-size:.85rem }
+.entry fieldset { border:1px solid var(--line); margin-top:10px }.entry fieldset label { display:block }
+.wb-check,#editor details { margin:18px 0; padding:12px 15px; background:var(--tint) } summary { cursor:pointer }
+#editor .review-link { display:block; text-align:left; margin-top:8px; border:0; padding:4px 0 } #editor pre { max-height:65vh; overflow:auto }
+@media(max-width:720px) { .wb-layout { grid-template-columns:minmax(0,1fr); gap:16px } #feature-list { grid-template-columns:repeat(3,minmax(0,1fr)); max-height:125px } #feature-list button { display:block } #feature-list small { display:block } .wb-tools { gap:6px } }
