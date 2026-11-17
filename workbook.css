@@ -1,27 +1,47 @@
 .workbook > h1 { margin-bottom:.15em }
-.wb-tools { display:flex; flex-wrap:wrap; gap:8px; margin:22px 0 4px }
-.workbook button,.file-button { display:inline-block; font:inherit; font-size:.94rem; color:var(--blue); background:white; border:1px solid #a7bdd1; border-radius:5px; padding:8px 14px; cursor:pointer }
+.wb-owner { margin:14px 0 4px; padding:12px 16px; background:var(--tint); border-left:3px solid var(--rule-blue); border-radius:0 5px 5px 0 }
+.wb-owner p { margin:0; max-width:none } #owner { font-weight:650 } #save-state { font-size:.93rem }
+.wb-owner.warn { background:var(--draft); border-left-color:var(--draft-rule) }
+.wb-hint { color:var(--muted); font-size:.87rem }
+/* Toolbar: the three views on the left as one joined control, the file actions on the right, smaller and quieter. */
+.wb-tools { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px 24px; margin:16px 0 20px }
+.wb-views { display:flex } .wb-file { display:flex; flex-wrap:wrap; gap:6px }
+.workbook .wb-views button { border-radius:0; margin-left:-1px } .workbook .wb-views button:first-child { border-radius:5px 0 0 5px; margin-left:0 } .workbook .wb-views button:last-child { border-radius:0 5px 5px 0 }
+.workbook .wb-views button[aria-pressed=true] { position:relative; background:var(--tint); color:var(--ink); font-weight:700; border-color:var(--blue) }
+.workbook .wb-file button,.wb-file .file-button { font-size:.87rem; padding:6px 11px } .workbook #new-book { color:var(--muted) }
+.workbook button,.file-button { display:inline-block; font:inherit; font-size:.94rem; color:var(--blue); background:white; border:1px solid var(--button-border); border-radius:5px; padding:8px 14px; cursor:pointer }
 .workbook button:hover,.file-button:hover { background:var(--tint) }
-.workbook button.primary { background:var(--blue); color:white; border-color:var(--blue) }
-.file-button { position:relative; overflow:hidden }.file-button input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100% }.file-button:focus-within { outline:3px solid #ad5b00 }
-#save-state { color:var(--muted); font-size:.93rem; margin:8px 0 22px }
-#pending:not(:empty),#notice:not(:empty) { padding:14px; background:#fff5db; margin-bottom:15px } #pending button { margin:0 6px 4px 0 }
-.wb-layout { display:grid; grid-template-columns:minmax(180px,235px) minmax(0,1fr); gap:28px; border-top:1px solid var(--line); padding-top:22px }
-.wb-list { background:#f3f7fb; align-self:start; padding:17px; border-radius:6px }.wb-list h2,#editor h2 { margin:0 0 8px; border:0 }
-#feature-list { display:grid; gap:4px; max-height:63vh; overflow:auto; margin-top:15px }
-#feature-list button { display:flex; justify-content:space-between; align-items:center; text-align:left; padding:8px; border:1px solid transparent; background:transparent }
-#feature-list button[aria-current] { background:white; border-color:#9eb6ce; font-weight:bold } #feature-list small { font-size:.76rem }
-#feature-list button { flex-wrap:wrap }
-.feature-name { display:block; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.83rem; font-weight:400; color:var(--muted) }
-#editor { min-width:0 } #editor h2 { font-size:1.55rem; max-width:42ch }
-.wb-tabs { display:flex; gap:4px; flex-wrap:wrap; border-bottom:1px solid var(--line); margin:12px 0 18px }
+.workbook button.primary { background:var(--blue); color:white; border-color:var(--blue) } .workbook button.primary:hover { background:var(--blue-deep) }
+.file-button { position:relative; overflow:hidden }.file-button input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100% }.file-button:focus-within { outline:3px solid var(--focus) }
+#pending:not(:empty),#notice:not(:empty) { padding:14px; background:var(--draft); margin-bottom:15px; border-radius:5px } #notice:not(:empty):not(.warn) { background:var(--tint) } #pending button { margin:0 6px 4px 0 }
+.wb-layout { display:grid; grid-template-columns:minmax(200px,255px) minmax(0,1fr); gap:28px; border-top:1px solid var(--line); padding-top:22px; align-items:start }
+.wb-list { background:var(--panel); padding:17px; border-radius:6px; position:sticky; top:12px }.wb-list h2,#editor h2 { margin:0 0 8px; border:0 }
+.wb-select { display:none }
+#feature-list { display:grid; grid-template-columns:minmax(0,1fr); gap:4px; max-height:calc(100vh - 150px); overflow-y:auto; margin-top:15px }
+.wb-group { margin:10px 0 0; padding:0 8px; font-size:.85rem; font-weight:650; color:var(--muted) } .wb-group:first-child { margin-top:0 }
+#feature-list button { display:grid; grid-template-columns:auto minmax(0,1fr); gap:1px 8px; align-items:center; text-align:left; padding:7px 8px; border:1px solid transparent; background:transparent; min-width:0 }
+#feature-list button:hover { background:white }
+#feature-list button[aria-current] { background:white; border-color:var(--handin-border) } #feature-list button[aria-current] .feature-id { font-weight:700 }
+.feature-name,.feature-count { grid-column:1 / -1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.85rem; color:var(--muted) } .feature-count { font-size:.8rem }
+.badge { justify-self:end; font-size:.78rem; font-weight:650; padding:1px 7px; border-radius:9px; white-space:nowrap; background:#e3e9ee; color:var(--muted) }
+.badge.part { background:#ffecb8; color:#6b4a00 } .badge.ready { background:#d9e9fb; color:#12447c } .badge.pass { background:#d5efdf; color:#17603a } .badge.fail { background:#f9d7d3; color:#8c1d12 }
+#editor .feature-code { margin:0 0 2px; font:650 .95rem Consolas,monospace; color:var(--muted) }
+#editor { min-width:0 } #editor h2 { font-size:1.45rem; max-width:42ch }
+.wb-meta { display:flex; flex-wrap:wrap; gap:8px 22px; align-items:end; margin:6px 0 4px } .wb-meta .wb-field { margin:0; min-width:190px } .wb-meta small { flex-basis:100% }
+.wb-tabs { display:flex; gap:4px; flex-wrap:wrap; border-bottom:1px solid var(--line); margin:14px 0 18px }
 .wb-tabs button { border:0; border-bottom:3px solid transparent; border-radius:0 } .wb-tabs button[aria-pressed=true] { color:var(--ink); font-weight:700; border-bottom-color:var(--blue) }
-.wb-field { display:grid; gap:4px; margin:12px 0 }.wb-field span { font-weight:650 }
-.wb-field textarea,.wb-field select { font:inherit; background:white; color:var(--ink); padding:8px 10px; border:1px solid #97aabc; border-radius:4px; width:100%; resize:vertical }
+.wb-field { display:grid; gap:4px; margin:12px 0 }.wb-field span { font-weight:650 } .wb-field small { color:var(--muted) } .wb-field.plain > span { display:none }
+.wb-field textarea,.wb-field select,.wb-field input,.wb-rows input { font:inherit; background:white; color:var(--ink); padding:8px 10px; border:1px solid var(--field); border-radius:4px; width:100%; resize:vertical }
+.wb-kv { display:grid; grid-template-columns:minmax(150px,230px) minmax(0,1fr); gap:8px 14px; align-items:center; margin:10px 0 22px; max-width:760px } .wb-kv label { font-weight:650 } .wb-kv input,.wb-kv select { font:inherit; padding:7px 10px; border:1px solid var(--field); border-radius:4px; width:100%; background:white; color:var(--ink) }
+.wb-rows { width:100%; max-width:760px } .wb-rows td,.wb-rows th { border:0; padding:3px 6px 3px 0; background:none } .wb-rows td:last-child { width:1% }
+#editor h3.section { margin-top:1.6em; padding-top:.9em; border-top:1px solid var(--line) }
 .entry { padding:12px 18px; margin:12px 0; border:1px solid var(--line); border-radius:5px }
-.entry h3 { margin:0; font:650 1rem Consolas,monospace; color:var(--blue) }
-.workbook .quiet { display:block; margin-top:8px; border:0; padding:4px 0; font-size:.85rem }
+.entry h3 { margin:0; font:650 1rem Consolas,monospace; color:var(--ink) }
+.workbook .quiet { display:inline-block; margin:8px 14px 0 0; border:0; padding:4px 0; font-size:.85rem; text-decoration:underline; text-underline-offset:.18em } .workbook .quiet:hover { background:none; color:var(--blue-deep) }
 .entry fieldset { border:1px solid var(--line); margin-top:10px }.entry fieldset label { display:block }
-.wb-check,#editor details { margin:18px 0; padding:12px 15px; background:var(--tint) } summary { cursor:pointer }
-#editor .review-link { display:block; text-align:left; margin-top:8px; border:0; padding:4px 0 } #editor pre { max-height:65vh; overflow:auto }
-@media(max-width:720px) { .wb-layout { grid-template-columns:minmax(0,1fr); gap:16px } #feature-list { grid-template-columns:repeat(3,minmax(0,1fr)); max-height:125px } #feature-list button { display:block } #feature-list small { display:block } .wb-tools { gap:6px } }
+.wb-check,#editor details { margin:18px 0; padding:12px 15px; background:var(--tint); border-radius:5px } summary { cursor:pointer }
+.wb-check { background:var(--draft) } .wb-check.done { background:#e4f4ea } .wb-check b { display:block } .wb-check ul { margin:4px 0 0; padding-left:1.3em }
+#editor details.example ul { padding-left:1.2em } #editor details.example li { margin:5px 0; font-size:.93rem }
+table.review { font-size:.9rem } table.review td:nth-child(n+3):nth-child(-n+6),table.review th:nth-child(n+3):nth-child(-n+6) { text-align:right; width:4.2rem } table.review button { border:0; padding:0; text-align:left; background:none; text-decoration:underline; text-underline-offset:.18em } table.review tr.dropped td { color:var(--muted) }
+#editor pre { max-height:65vh; overflow:auto }
+@media(max-width:720px) { .wb-layout { grid-template-columns:minmax(0,1fr); gap:16px } .wb-list { position:static; padding:12px 14px } .wb-list h2 { font-size:1.1rem } #feature-list { display:none } .wb-select { display:grid; gap:4px; margin-top:10px; font-weight:650 } .wb-select select { font:inherit; padding:9px 10px; border:1px solid var(--field); border-radius:4px; background:white; color:var(--ink); width:100% } .wb-tools { gap:10px } .wb-views { width:100% } .wb-views button { flex:1 1 0; padding-left:6px; padding-right:6px } .wb-kv { grid-template-columns:1fr; gap:3px } .wb-kv input,.wb-kv select { margin-bottom:8px } table.review { display:table } table.review th:nth-child(n+3):nth-child(-n+6),table.review td:nth-child(n+3):nth-child(-n+6) { display:none } }

@@ -9,7 +9,8 @@ for (const id of loadList("plan")) {
 const sources = new Set(loadList("menu-settings"));
 const options = document.querySelector("#options");
 const controls = new Map();
-const download = document.querySelector("#download");
+const openWorkbook = document.querySelector("#open-workbook");
+let capNote;
 function plan() {
   const ids = new Set(features.filter(isCore).map(f => f.id));
   function add(id) {
@@ -28,6 +29,14 @@ function buildOptions() {
     const heading = document.createElement(group === "Core" ? "summary" : "h2");
     heading.textContent = group === "Core" ? "View the 13 compulsory core features" : group;
     el.append(heading);
+    if (group === "Challenges") {
+      const intro = document.createElement("p");
+      intro.textContent = "Plan at most two challenges. Each is worth about 12.5% of the final marks, and a third earns nothing.";
+      capNote = document.createElement("p");
+      capNote.className = "cap-note"; capNote.setAttribute("role", "status"); capNote.hidden = true;
+      capNote.textContent = "You have chosen two challenges, so the others are greyed out. Untick one to choose a different challenge.";
+      el.append(intro, capNote);
+    }
     for (const f of members) {
       if (isCore(f)) {
         const line = document.createElement("p");
@@ -45,8 +54,8 @@ function buildOptions() {
       row.append(input,text); el.append(row);
       if (isChallenge(f)) {
         const link = document.createElement("a");
-        link.href = "brief.html#" + f.id;
-        link.textContent = "Read " + f.id + " targets and baseline"; el.append(link);
+        link.href = "brief.html#" + f.id; link.className = "option-link";
+        link.textContent = "Read the " + f.id + " description, baseline and example target"; el.append(link);
       }
       controls.set(f.id, {input,detail});
       input.addEventListener("change", () => {
@@ -68,7 +77,9 @@ function menuSettings(items) {
   const legend = document.createElement("legend");
   legend.textContent = "P02 menu settings"; field.append(legend);
   const note = document.createElement("p");
-  note.textContent = "Select at least two other features in your plan whose settings you will edit in the menu. Add them to your plan first.";
+  note.textContent = candidates.length < 2
+    ? "P02 edits settings that belong to two of your other features. Tick at least two more features in the list first."
+    : "Tick at least two features below whose settings your menu will edit. To use a feature that is not shown, tick it in the list first.";
   field.append(note);
   for (const f of candidates) {
     const label = document.createElement("label");
@@ -78,16 +89,47 @@ function menuSettings(items) {
       if (input.checked) sources.add(f.id); else sources.delete(f.id);
       refresh(); document.getElementById(input.id)?.focus();
     });
-    label.append(input, " " + f.label); field.append(label);
+    label.append(input, " " + f.label + " · " + f.title); field.append(label);
   }
   box.append(field);
   return sources.size >= byID.get("P02").settingsSources;
+}
+function marksTable(standard, challenges, hasX6) {
+  const box = document.querySelector("#band");
+  box.replaceChildren();
+  const table = document.createElement("table");
+  table.className = "marks";
+  const caption = document.createElement("caption");
+  caption.textContent = "Share of the final 30 marks";
+  caption.style.textAlign = "left"; caption.style.fontWeight = "650"; table.append(caption);
+  const rows = [
+    ["Core, all 13 features", "40%", false],
+    ["Standard features, " + standard + " chosen, sharing 35%", standard ? "TBA" : "0%", !standard],
+    ["Challenges, " + challenges + " of 2", challenges ? "about " + challenges * 12.5 + "%" : "0%", !challenges]
+  ];
+  for (const [name, share, off] of rows) {
+    const tr = table.insertRow(); if (off) tr.className = "off";
+    tr.insertCell().textContent = name;
+    const cell = tr.insertCell();
+    if (share === "TBA") {
+      const tag = document.createElement("span");
+      tag.className = "tba"; tag.textContent = "To be announced"; cell.append(tag);
+    } else cell.textContent = share;
+  }
+  box.append(table);
+  const notes = [];
+  if (standard) notes.push("Each standard feature has its own weight, which will be published later. The 35% is shared among the standard features you build.");
+  if (hasX6) notes.push("The X6 share depends on the handling traces available.");
+  notes.push("You earn these shares only for features that pass their tests.");
+  notes.push("The first submission is marked on how complete and exact your requirements and tests are, not on how many features you plan.");
+  const note = document.createElement("p");
+  note.className = "note"; note.textContent = notes.join(" "); box.append(note);
 }
 function refresh() {
   const items = plan();
   const challenges = items.filter(isChallenge).length;
   const standard = items.filter(f => !isCore(f) && !isChallenge(f)).length;
-  const edges = [];
+  const added = [];
   for (const [id,{input,detail}] of controls) {
     const f = byID.get(id);
     const included = items.includes(f);
@@ -95,54 +137,27 @@ function refresh() {
     const auto = included && !selected.has(id);
     input.checked = included;
     input.disabled = auto || (!included && isChallenge(f) && challenges === 2);
-    const need = f.needs ? byID.get(f.needs).label : f.settingsSources ? "two other features with settings" : "core";
-    detail.textContent = "Needs " + need + ". " + (auto ? "Included for " + parents.map(p => p.id).join(", ") + "." : "");
-    if (included && f.needs) edges.push(f.id + " needs " + need);
+    const parts = [];
+    if (f.needs) parts.push("Needs " + byID.get(f.needs).label + ".");
+    if (f.settingsSources) parts.push("Needs two other features with settings.");
+    if (auto) {
+      const by = parents.map(p => p.id).join(", ");
+      parts.push("Added for you because " + by + (parents.length > 1 ? " need it. To remove it, untick " : " needs it. To remove it, untick ") + by + ".");
+      added.push(f.label + " (for " + by + ")");
+    }
+    detail.textContent = parts.join(" ");
   }
+  capNote.hidden = challenges < 2;
   document.querySelector("#counts").textContent = "13 core · " + standard + " standard · " + challenges + " of 2 challenges";
-  document.querySelector("#dependencies").textContent = edges.join(". ") + (edges.length ? "." : "");
-  let band = "Passing all core tests earns 40% of the final 30 marks.";
-  if (standard) band += " Standard features contribute up to 35% more. Individual weights are pending.";
-  if (challenges) {
-    const ceiling = 40 + (standard ? 35 : 0) + challenges * 12.5;
-    band += challenges === 1 ? " One challenge can add about 12.5%." : " Two challenges can add up to 25%.";
-    band += " The ceiling for this band is " + ceiling + "%.";
-    if (standard) band += " Your exact ceiling depends on the weights of your selected standard features.";
-  }
-  if (items.some(f => f.id === "X6")) band += " The X6 share depends on the handling traces available.";
-  if (!challenges && standard) band += " The core and standard band reaches 75%.";
-  document.querySelector("#band").textContent = band;
-  download.disabled = !menuSettings(items);
-  document.querySelector("#open-workbook").disabled = download.disabled;
+  document.querySelector("#plan-bar-counts").textContent = standard + " standard · " + challenges + " of 2 challenges";
+  document.querySelector("#dependencies").textContent = added.length ? "Added as prerequisites: " + added.join(", ") + "." : "";
+  marksTable(standard, challenges, items.some(f => f.id === "X6"));
+  openWorkbook.disabled = !menuSettings(items);
   const savedPlan = saveList("plan",selected);
   const savedSources = saveList("menu-settings",sources);
-  document.querySelector("#download-note").textContent = download.disabled ? "Choose the features supplying your P02 settings." : (!savedPlan || !savedSources ? "Selections last for this visit." : "");
+  document.querySelector("#download-note").textContent = openWorkbook.disabled ? "Choose the features supplying your P02 settings before you open the workbook." : (!savedPlan || !savedSources ? "Selections last for this visit only, because browser storage is unavailable." : "");
 }
-function outline(items) {
-  const lines = ["# Transport Monitor: Requirements and Tests", "", "## Student details", "", "- Name:", "- Student number:", "- Build ID (match your firmware):", "- Submission: First", "- Date:", "",
-    "## Feature list", "", "| ID | Feature | Status | Claimed |", "|---|---|---|---|"];
-  for (const f of items) lines.push("| " + f.label + " | " + f.title + " | Planned | |");
-  lines.push("", "## Build and setup", "", "- Toolchain and version:", "- Libraries and versions:", "- Board settings:", "- How to build:", "- How to flash the binary:", "- Accelerometer range:", "- IMU sample rate:", "- AHT20 read interval:", "",
-    "## Button map", "", "| Action | Button press |", "|---|---|", "| | |", "", "## Extra state fields and event kinds", "", "<Describe each added field, its type and unit, and your event kinds.>", "",
-    "## Features", "", "Use the worked EX1 example in the guide under Resources and changes. Keep the headings. Leave test results blank until you run the tests.", "");
-  for (const f of items) {
-    lines.push("### " + f.label + ": " + f.title, "", "#### Requirements", "", "- " + f.id + "-R1: <State the exact behaviour, values and units. Add numbered requirements for boundaries, invalid data and how the user reaches this feature.>");
-    if (f.id === "P02") lines.push("", "Describe the menu settings for " + [...sources].join(", ") + ".");
-    if (isChallenge(f)) lines.push("", "<Justify your method. Identify the baseline, set a numerical target and explain how you will measure both methods.>");
-    lines.push("", "#### Tests", "", "| Test | Covers | How | Setup | Expected result | Result |", "|---|---|---|---|---|---|", "| " + f.id + "-T1 | " + f.id + "-R1 | | | | |", "", "<Supply a runnable file for each serial-testable feature. Identify the requirement each test covers and the input and observable result.>", "",
-      "#### By-hand steps", "", "<Give the starting state, numbered actions and expected observations for each manual test.>", "", "#### Changes since first submission", "", "<For your final submission, record what changed and why.>", "");
-  }
-  lines.push("## Known limitations", "", "<Record anything that failed or that you could not test.>", "");
-  return lines.join("\n");
-}
-download.addEventListener("click", () => {
-  const url = URL.createObjectURL(new Blob([outline(plan())], {type:"text/markdown;charset=utf-8"}));
-  const link = document.createElement("a");
-  link.href = url; link.download = "REQUIREMENTS_AND_TESTS.md"; document.body.append(link); link.click(); link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 30000);
-  document.querySelector("#download-note").textContent = "Plan downloaded. Fill in the requirements and tests for each feature.";
-});
-document.querySelector("#open-workbook").addEventListener("click", () => {
+openWorkbook.addEventListener("click", () => {
   const params = new URLSearchParams({features:plan().map(f=>f.id).join(","), settings:[...sources].join(",")});
   location.href = "workbook.html?" + params;
 });

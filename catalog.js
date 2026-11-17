@@ -1,3 +1,5 @@
+// Builds the feature tables and challenge descriptions in the brief from features.js.
+const sentence = text => text.charAt(0).toUpperCase() + text.slice(1);
 for (const target of document.querySelectorAll("[data-catalog]")) {
   const group = target.dataset.catalog;
   const members = features.filter(f => f.group === group);
@@ -5,13 +7,26 @@ for (const target of document.querySelectorAll("[data-catalog]")) {
     for (const f of members) {
       const article = document.createElement("article");
       article.id = f.id;
-      article.innerHTML = "<h3>" + f.label + ": " + f.title + "</h3><p><b>Needs:</b> " +
-        (f.needs || "Core") + ". <b>How it is marked:</b> " + f.assessment + ".</p>" + f.body;
+      article.className = "challenge";
+      const heading = document.createElement("h3");
+      heading.textContent = f.label + ": " + f.title;
+      const facts = document.createElement("dl");
+      facts.className = "facts";
+      for (const [term, value] of [["Needs", f.needs || "Core"], ["How it is marked", sentence(f.assessment) + "."],
+        ["Baseline", f.baseline], ["Example target", f.target]]) {
+        if (!value) continue;
+        const dt = document.createElement("dt"), dd = document.createElement("dd");
+        dt.textContent = term; dd.textContent = value; facts.append(dt, dd);
+      }
+      const body = document.createElement("div");
+      body.innerHTML = f.body;
+      article.append(heading, facts, body);
       target.append(article);
     }
     continue;
   }
   const table = document.createElement("table");
+  table.className = group === "Core" ? "catalog core" : "catalog";
   const row = table.createTHead().insertRow();
   const headers = group === "Core" ? ["ID","Feature"] : ["ID","Feature","Needs","How it is marked"];
   for (const title of headers) {

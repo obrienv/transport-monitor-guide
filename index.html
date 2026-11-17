@@ -4,19 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Roadmap | Transport Monitor</title>
-<link rel="stylesheet" href="guide.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="guide.css">
 </head>
 <body><a class="skip" href="#main">Skip to content</a>
 <header>
 <div class="mast"><a href="index.html" class="brand">Transport Monitor</a><span>SETU / Embedded Systems</span>
 </div>
-<nav class="tabs" aria-label="Project guide"><a href="index.html" aria-current="page">Roadmap</a><a href="brief.html">Project brief</a><a href="picker.html">Feature picker</a><a href="workbook.html">Workbook</a><a href="protocol.html">Serial protocol</a><a href="resources.html">Resources & changes</a>
+<nav class="tabs" aria-label="Project guide"><a href="index.html" aria-current="page">Roadmap</a><a href="brief.html">Project brief</a><a href="picker.html">Feature picker</a><a href="workbook.html">Workbook</a><a href="protocol.html">Serial protocol</a><a href="resources.html">Resources</a>
 </nav>
 </header>
 <main id="main">
 <div class="hero">
 <div>
-<p class="eyebrow">Fourth-year embedded systems</p>
 <h1>Transport Monitor</h1>
 <p>Build and test a monitor that travels with sensitive equipment. Use these six steps to plan your work and prepare both submissions.</p>
 </div>
@@ -33,65 +32,63 @@
 </div>
 <section class="milestone">
 <div class="part">
-<p class="eyebrow">Submission 1</p>
-<h2>Plan and early build</h2><strong>10 marks</strong>
+<h2>Submission 1: Plan and early build</h2><strong>10 marks</strong>
 </div>
 <div class="steps">
-<article id="step-1" class="step"><input type="checkbox" id="done-1" aria-label="Mark step 1 complete">
+<article id="step-1" class="step"><input type="checkbox" id="done-1">
 <div>
 <h3><label for="done-1">1. Choose your features</label>
 </h3>
-<p>Plan the compulsory core, then choose standard features and up to two challenges.</p><a href="picker.html">Open the feature picker</a>
+<p>Plan the compulsory core, then choose standard features and up to two challenges.</p><a href="picker.html">Open the feature picker</a><a href="brief.html#core">Read the feature list</a>
 </div>
 </article>
-<article id="step-2" class="step"><input type="checkbox" id="done-2" aria-label="Mark step 2 complete">
+<article id="step-2" class="step"><input type="checkbox" id="done-2">
 <div>
 <h3><label for="done-2">2. Write requirements and tests</label>
 </h3>
-<p>Open your project workbook. For each feature, define the behaviour and write a test with an observable result.</p><a href="workbook.html">Write requirements and tests</a>
+<p>Open your project workbook. For each feature, define the behaviour and write a test with an observable result.</p><a href="workbook.html">Write requirements and tests</a><a href="brief.html#good-requirement">What a good requirement contains</a><a href="resources.html#read-ex1">Read the worked EX1 example</a>
 </div>
 </article>
-<article id="step-3" class="step"><input type="checkbox" id="done-3" aria-label="Mark step 3 complete">
+<article id="step-3" class="step"><input type="checkbox" id="done-3">
 <div>
 <h3><label for="done-3">3. Build the early binary</label>
 </h3>
-<p>Read both sensors and answer serial test messages. Cover C01, C02, C03, C11 and C12.</p><a href="brief.html#early">Check the early binary scope</a>
+<p>Start both sensors and report their health (C01), read the AHT20 and the ICM-20948 (C02, C03), answer serial test messages (C11) and send the state in the standard format (C12).</p><a href="brief.html#early">Check the early binary scope</a><a href="protocol.html#commands">Serial commands</a><a href="resources.html#pc-test">How to send test messages</a>
 </div>
 </article>
 <div class="handin"><b>Submit on Blackboard</b>
-<p>Your requirements and test plan, plus the early binary.</p><small>Deadline to be announced.</small>
+<p>Your requirements and test plan, plus the early binary.</p><span class="deadline">Deadline to be announced</span>
 </div>
 </div>
 </section>
 <section class="milestone">
 <div class="part">
-<p class="eyebrow">Submission 2</p>
-<h2>Build, test and hand over</h2><strong>30 marks</strong>
+<h2>Submission 2: Build, test and hand over</h2><strong>30 marks</strong>
 </div>
 <div class="steps">
-<article id="step-4" class="step"><input type="checkbox" id="done-4" aria-label="Mark step 4 complete">
+<article id="step-4" class="step"><input type="checkbox" id="done-4">
 <div>
 <h3><label for="done-4">4. Build the rest</label>
 </h3>
-<p>Use your feedback to revise the requirements. Implement the full core and the features in your plan.</p><a href="brief.html#core">Read the feature descriptions</a>
+<p>Use your feedback to revise the requirements. Implement the full core and the features in your plan.</p><a href="brief.html#core">Read the feature descriptions</a><a href="protocol.html#settings">Setting and action names</a><a href="workbook.html">Open your workbook</a>
 </div>
 </article>
-<article id="step-5" class="step"><input type="checkbox" id="done-5" aria-label="Mark step 5 complete">
+<article id="step-5" class="step"><input type="checkbox" id="done-5">
 <div>
 <h3><label for="done-5">5. Test on your board</label>
 </h3>
-<p>Run your serial test files and by-hand checks. Save the logs and record what passed or failed.</p><a href="brief.html#tested">Check how testing works</a>
+<p>Run your serial test files and by-hand checks. Save the logs and record what passed or failed.</p><a href="brief.html#tested">Check how testing works</a><a href="workbook.html">Record results in your workbook</a><a href="resources.html#pc-test">PC test program</a>
 </div>
 </article>
-<article id="step-6" class="step"><input type="checkbox" id="done-6" aria-label="Mark step 6 complete">
+<article id="step-6" class="step"><input type="checkbox" id="done-6">
 <div>
 <h3><label for="done-6">6. Decide what to claim</label>
 </h3>
-<p>Compare your results with your plan. Claim the features you verified and explain each change.</p><a href="brief.html#calc">Check the marking guidance</a>
+<p>Compare your results with your plan. Claim the features you verified and explain each change.</p><a href="brief.html#calc">Check the marking guidance</a><a href="brief.html#plan">Rules for changing your plan</a><a href="workbook.html">Review and download your document</a>
 </div>
 </article>
 <div class="handin"><b>Submit on Blackboard</b>
-<p>Your final binary, requirements and test document, serial test files and logs, source code and build instructions.</p><small>Deadline to be announced.</small>
+<p>Your final binary, requirements and test document, serial test files and logs, source code and build instructions.</p><span class="deadline">Deadline to be announced</span>
 </div>
 </div>
 </section>

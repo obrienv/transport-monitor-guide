@@ -1,7 +1,7 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Project brief | Transport Monitor</title><link rel="stylesheet" href="guide.css"></head>
-<body><a class="skip" href="#main">Skip to content</a><header><div class="mast"><a href="index.html" class="brand">Transport Monitor</a><span>SETU / Embedded Systems</span></div><nav class="tabs" aria-label="Project guide"><a href="index.html">Roadmap</a><a href="brief.html" aria-current="page">Project brief</a><a href="picker.html">Feature picker</a><a href="workbook.html">Workbook</a><a href="protocol.html">Serial protocol</a><a href="resources.html">Resources & changes</a></nav></header>
-<main id="main">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Project brief | Transport Monitor</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="guide.css"></head>
+<body><a class="skip" href="#main">Skip to content</a><header><div class="mast"><a href="index.html" class="brand">Transport Monitor</a><span>SETU / Embedded Systems</span></div><nav class="tabs" aria-label="Project guide"><a href="index.html">Roadmap</a><a href="brief.html" aria-current="page">Project brief</a><a href="picker.html">Feature picker</a><a href="workbook.html">Workbook</a><a href="protocol.html">Serial protocol</a><a href="resources.html">Resources</a></nav></header>
+<main id="main" class="doc">
 
 <h1>Project brief</h1>
 <p class="sub">Embedded Systems. Project draft. 40 marks.</p>
@@ -43,7 +43,7 @@
 </ol>
 <p>Every student builds the same core features. You then choose which standard features and challenges to add.</p>
 
-<h3>What a good requirement contains</h3>
+<h3 id="good-requirement">What a good requirement contains</h3>
 <p>Take the feature "Tilt hysteresis: the tilt alarm clears at a lower angle than the angle that starts it". The one line leaves questions open, and your requirements must answer them:</p>
 <ul>
   <li><strong>Exact behaviour with numbers.</strong> At what angle does the alarm start, and at what angle does it clear?</li>
@@ -76,7 +76,7 @@
   <li><strong>Requirements and test plan (about 6 marks).</strong> You list the features you intend to build. For the core features and for each feature you choose, you write the requirements and say how each requirement will be tested and what result you expect. This part is marked on how complete and exact your requirements and tests are for each feature, not on how many features you list.</li>
   <li><strong>Early binary (about 4 marks).</strong> The board starts, reads both sensors, and answers the serial test messages with the monitoring state. These are core features C01, C02, C03, C11 and C12. The serial interface comes early because every later test, yours and the lecturer's, runs through it.</li>
 </ul>
-<p>Use <a href="picker.html">the feature picker</a> to generate REQUIREMENTS_AND_TESTS.md. You can complete it in the <a href="workbook.html">project workbook</a>. Submit your Markdown file with your early binary on Blackboard. For the final handover, include runnable test files for every serial-testable feature, plus your logs and by-hand procedures.</p>
+<p>Choose your features in <a href="picker.html">the feature picker</a>, then write your requirements and tests in the <a href="workbook.html">project workbook</a>. The workbook produces REQUIREMENTS_AND_TESTS.md. Submit your Markdown file with your early binary on Blackboard. For the final handover, include runnable test files for every serial-testable feature, plus your logs and by-hand procedures.</p>
 <h3 id="early">What the early binary must do</h3>
 <p>You plan the whole core in the first submission, but you build only the first part of it. The early binary must:</p>
 <ul>
@@ -90,7 +90,7 @@
 
 <p>For the first submission, use the <a href="protocol.html#commands">command table</a> and <a href="protocol.html#state">state format</a>. The full worked sequence includes alarms assessed later.</p>
 <p>You get feedback on your requirements after the first submission, so that you can correct them before you finish the build.</p>
-<h3>Your feature list is your plan</h3>
+<h3 id="plan">Your feature list is your plan</h3>
 <p>The features you list in the first submission are the features you plan to build, and your final submission claims features from that list. You can still change your plan, but every change needs a reason in your final submission:</p>
 <ul>
   <li><strong>Dropping a feature.</strong> You may drop a feature that did not work out. Say why. A dropped feature earns no marks.</li>
@@ -192,4 +192,4 @@
   <li>A small PC program for sending test files to your board and saving the logs</li>
 </ul>
 
-</main><footer>SETU · Fourth-year Embedded Systems <a href="index.html">Project roadmap</a></footer><script src="features.js"></script><script src="catalog.js"></script></body></html>
+</main><footer>SETU · Fourth-year Embedded Systems <a href="index.html">Project roadmap</a></footer><script src="page.js"></script><script src="features.js"></script><script src="catalog.js"></script></body></html>

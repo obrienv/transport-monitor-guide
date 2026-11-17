@@ -5,6 +5,8 @@ function updateProgress() {
   const next = steps.find(step => !step.checked)?.closest("article");
   const line = document.querySelector("#next-step");
   line.replaceChildren();
+  // The first unticked step is marked as the current one, and its first link is the one to follow.
+  for (const step of steps) step.closest("article").classList.toggle("current", step.closest("article") === next);
   if (next) {
     const link = document.createElement("a");
     link.href = next.querySelector("a").href;

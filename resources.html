@@ -4,20 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Resources & changes | Transport Monitor</title>
-<link rel="stylesheet" href="guide.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="guide.css">
 </head>
 <body><a class="skip" href="#main">Skip to content</a>
 <header>
 <div class="mast"><a href="index.html" class="brand">Transport Monitor</a><span>SETU / Embedded Systems</span>
 </div>
-<nav class="tabs" aria-label="Project guide"><a href="index.html">Roadmap</a><a href="brief.html">Project brief</a><a href="picker.html">Feature picker</a><a href="workbook.html">Workbook</a><a href="protocol.html">Serial protocol</a><a href="resources.html" aria-current="page">Resources & changes</a>
+<nav class="tabs" aria-label="Project guide"><a href="index.html">Roadmap</a><a href="brief.html">Project brief</a><a href="picker.html">Feature picker</a><a href="workbook.html">Workbook</a><a href="protocol.html">Serial protocol</a><a href="resources.html" aria-current="page">Resources</a>
 </nav>
 </header>
 <main id="main">
-<p class="eyebrow">Project resources</p>
 <h1>Resources and changes</h1>
 <h2 id="example">Requirements and test files</h2>
-<p>Start with the <a href="picker.html">feature picker</a> for an outline tailored to your plan, or download the editable template below. EX1 uses an invented humidity feature to show how a requirement connects to a test and its expected result.</p>
+<p>Choose your features in the <a href="picker.html">feature picker</a> and write the document in the <a href="workbook.html">project workbook</a>. The workbook and the template below produce the same Markdown layout, so you can also download the template and write in a text editor. EX1 uses an invented humidity feature to show how a requirement connects to a test and its expected result.</p>
 <div class="downloads">
 <article>
 <h3>Requirements and tests</h3>
@@ -28,15 +27,37 @@
 <p>Read each request beside its expected reply. Save your own serial tests as files inside a tests folder.</p><a download href="downloads/tests/EX1.jsonl">Download EX1.jsonl</a>
 </article>
 </div>
-<h2>PC test program</h2>
+<h3 id="read-ex1">Read the worked EX1 example</h3>
+<p>EX1 shows the requirements, the tests linked to them and the by-hand steps for one feature. The text below comes from the Markdown template.</p>
+<pre id="ex1-text">Download the Markdown template above to read the example.</pre>
+<h2 id="pc-test">PC test program</h2>
 <p>The download will be added after checks on the lab hardware. You can use the <a href="protocol.html#sequence">worked serial sequence</a> now. It demonstrates the full monitor, including alarms built after the early submission.</p>
-<h2>What changed</h2><article class="change"><time datetime="2026-11-16">16 November 2026</time><h3>Project workbook</h3><p>Write and review your plan in the <a href="workbook.html">workbook</a>. Download a dated copy to keep your work or continue on another computer.</p></article>
+<h3>Sending test messages by hand until then</h3>
+<ol>
+<li>Open a serial monitor on the board's USB port, for example the Serial Monitor in the Arduino IDE.</li>
+<li>Set the line ending to Newline, because every protocol message ends with a newline.</li>
+<li>Copy one request line from the <a href="protocol.html#commands">protocol page</a> (each example has a Copy button), paste it and send it.</li>
+<li>Read the one reply line and compare it with the expected reply. Save the monitor output as your log.</li>
+</ol>
+<h2>What changed</h2><article class="change"><time datetime="2026-11-17">17 November 2026</time><h3>Workbook, picker and roadmap</h3><p>The workbook checks your project details and features before you download the file for Blackboard. The backup button is now called Download backup to keep, because backups are not submitted. The claim, the Results tab and the changes note appear when you set Submission to Final in Project details.</p>
+<p>On a shared lab PC, choose Finish on this PC in the workbook before you leave. It downloads a backup and then removes your workbook, feature choices and roadmap ticks from that browser.</p>
+<p>The picker shows the standard feature share as to be announced and no longer shows a plan total. You can now <a href="#read-ex1">read the worked EX1 example</a> on this page.</p></article>
+<article class="change"><time datetime="2026-11-16">16 November 2026</time><h3>Project workbook</h3><p>Write and review your plan in the <a href="workbook.html">workbook</a>. Download a dated copy to keep your work or continue on another computer.</p></article>
 <article class="change"><time datetime="2026-11-16">16 November 2026</time>
 <h3>Project guide and feature planning</h3>
 <p>Use the roadmap and picker for the first submission. The worked EX1 files now agree on the humidity boundary. With a maximum of 70%, a clear setting of 69% is accepted and 70% is rejected.</p>
 <p>Deadlines, standard feature weights, the X6 evidence arrangements and challenge serial commands will be announced here.</p>
 </article>
 </main>
+<script>
+// Shows the EX1 section of the template, so the example has one source. Opened from a file, the fallback text stays.
+fetch("downloads/REQUIREMENTS_AND_TESTS.md").then(r => r.ok ? r.text() : Promise.reject()).then(text => {
+  const start = text.indexOf("### EX1"), end = text.indexOf("## Known limitations");
+  if (start < 0 || end < start) return;
+  const section = text.slice(start, end).replace(/\r/g, "").replace(/<!--[\s\S]*?-->\n*/g, "").replace(/\n{3,}/g, "\n\n").trim();
+  document.getElementById("ex1-text").textContent = section;
+}).catch(() => {});
+</script>
 <footer>SETU · Fourth-year Embedded Systems <a href="index.html">Project roadmap</a>
 </footer>
 </body>
