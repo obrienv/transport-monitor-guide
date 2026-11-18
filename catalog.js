@@ -1,5 +1,4 @@
 // Builds the feature tables and challenge descriptions in the brief from features.js.
-const sentence = text => text.charAt(0).toUpperCase() + text.slice(1);
 for (const target of document.querySelectorAll("[data-catalog]")) {
   const group = target.dataset.catalog;
   const members = features.filter(f => f.group === group);
@@ -12,8 +11,8 @@ for (const target of document.querySelectorAll("[data-catalog]")) {
       heading.textContent = f.label + ": " + f.title;
       const facts = document.createElement("dl");
       facts.className = "facts";
-      for (const [term, value] of [["Needs", f.needs || "Core"], ["How it is marked", sentence(f.assessment) + "."],
-        ["Baseline", f.baseline], ["Example target", f.target]]) {
+      for (const [term, value] of [["Needs", f.needs || "Core"], ["Baseline", f.baseline],
+        ["Replay checks", f.replay], ["Physical tests check", f.physical], ["Proposed minimum (provisional)", f.target]]) {
         if (!value) continue;
         const dt = document.createElement("dt"), dd = document.createElement("dd");
         dt.textContent = term; dd.textContent = value; facts.append(dt, dd);
@@ -28,7 +27,7 @@ for (const target of document.querySelectorAll("[data-catalog]")) {
   const table = document.createElement("table");
   table.className = group === "Core" ? "catalog core" : "catalog";
   const row = table.createTHead().insertRow();
-  const headers = group === "Core" ? ["ID","Feature"] : ["ID","Feature","Needs","How it is marked"];
+  const headers = group === "Core" ? ["ID","Feature"] : ["ID","Feature","Needs","Note"];
   for (const title of headers) {
     const th = document.createElement("th");
     th.scope = "col"; th.textContent = title; row.append(th);
@@ -38,7 +37,7 @@ for (const target of document.querySelectorAll("[data-catalog]")) {
     const tr = body.insertRow();
     tr.id = f.id;
     const fields = [f.label, f.title];
-    if (group !== "Core") fields.push(f.settingsSources ? "Two other features with settings" : (f.needs || "Core"), f.assessment);
+    if (group !== "Core") fields.push(f.settingsSources ? "Two other features with settings" : (f.needs || "Core"), f.note || "");
     for (const value of fields) tr.insertCell().textContent = value;
   }
   target.append(table);

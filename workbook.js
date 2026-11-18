@@ -1,4 +1,13 @@
 const $ = selector => document.querySelector(selector);
+// Books saved before 17 November lack the new sections and the access field. Old serial-protocol text is kept under Additional imported text.
+function upgrade(saved) {
+  const old=saved.project["Extra state fields and event kinds"];
+  saved.project={...projectSections,...saved.project};
+  delete saved.project["Extra state fields and event kinds"];
+  if(old && old.trim()) saved.extra=[saved.extra,"Extra state fields and event kinds (old serial protocol)\n"+old.trim()].filter(Boolean).join("\n\n");
+  for(const f of saved.items) {f.access ??= "";f.manual ??= "";f.changes ??= "";}
+  return saved;
+}
 const storageKey = "setu.tm.2026.workbook.v1";
 const params = new URLSearchParams(location.search);
 const plannedIDs = new Set((params.get("features") ?? loadList("plan").join(",")).split(","));
@@ -73,8 +82,9 @@ try {
   if(lastStored) {
     const saved=JSON.parse(lastStored);
     if(!saved.book?.items?.length || !saved.book.project) throw Error();
-    markdown(saved.book);
-    book=saved.book;active=book.items[0].id;downloaded=saved.downloaded||"";changed=saved.changed!==false;savedAt=saved.savedAt||"";
+    const upgraded=upgrade(saved.book);
+    markdown(upgraded);
+    book=upgraded;active=book.items[0].id;downloaded=saved.downloaded||"";changed=saved.changed!==false;savedAt=saved.savedAt||"";
   }
 } catch {warning="Could not open the browser draft. Open a Markdown backup to recover it.";conflict=true;}
 // The browser asks before leaving only when the draft could not be saved in this browser.
@@ -98,13 +108,14 @@ $("#backup").onclick=backup;
 function selectedFeature() {return book.items.find(f=>f.id===active) || book.items[0];}
 function authored(text) {return !!text.trim() && !/^<[^>]*>$/.test(text.trim());}
 function linked(t,id) {return t.covers.split(/[\s,]+/).includes(id);}
+function isFinal() {return detail("submission").toLowerCase()==="final";}
 function issues(f) {
   const gaps=[];
   if(!f.requirements.length) gaps.push("Write a requirement.");
-  for(const r of f.requirements) {
-    if(!authored(r.text)) gaps.push("Write the behaviour for "+r.id+".");
-    if(!f.tests.some(t=>linked(t,r.id))) gaps.push("Link a test to "+r.id+".");
-  }
+  for(const r of f.requirements) if(!authored(r.text)) gaps.push("Write the behaviour for "+r.id+".");
+  if(!isFinal()) return gaps;
+  for(const r of f.requirements) if(!f.tests.some(t=>linked(t,r.id))) gaps.push("Link a test to "+r.id+".");
+  if(!f.access.trim()) gaps.push("Say how to reach or observe "+f.label+" from Home.");
   for(const t of f.tests) {
     if(!f.requirements.some(r=>linked(t,r.id))) gaps.push("Choose a requirement for "+t.id+".");
     if(!t.expected.trim()) gaps.push("Give an expected result for "+t.id+".");
@@ -123,6 +134,7 @@ function standing(f) {
   if(fail) return [fail+" failed","fail"];
   if(!f.requirements.length && !f.tests.length) return ["Not started",""];
   if(issues(f).length) return ["Incomplete","part"];
+  if(!isFinal()) return ["Requirements written","ready"];
   if(pass===f.tests.length) return ["All passed","pass"];
   return ["Ready to test","ready"];
 }
@@ -170,7 +182,7 @@ function fillCheck(box,f) {
   if(box.dataset.gaps===key && box.childElementCount) return;
   box.dataset.gaps=key;
   box.replaceChildren();box.classList.toggle("done",!gaps.length);
-  if(!gaps.length) {box.append(node("b","Requirements and test links are present."),node("span","Check their wording and expected results."));return;}
+  if(!gaps.length) {box.append(node("b",isFinal()?"Requirements, linked tests and the access route are present.":"Requirements are present."),node("span",isFinal()?"Check their wording and expected results.":"Check that another engineer could test each one."));return;}
   box.append(node("b","Still to do for "+f.label));
   const ul=node("ul");for(const msg of gaps.slice(0,6)) ul.append(node("li",msg));
   if(gaps.length>6) ul.append(node("li","And "+(gaps.length-6)+" more."));
@@ -183,7 +195,7 @@ function field(parent,label,obj,key,options=null,hint="") {
   input.setAttribute("aria-label",label);
   if(options) for(const value of [...new Set([...(obj[key]?[obj[key]]:[]),...options])]) input.add(new Option(value||"Not decided",value));
   input.value=obj[key]||"";
-  if(!options) input.rows=["manual","notes","changes"].includes(key)||obj===book.project?4:2;
+  if(!options) input.rows=["manual","access","notes","changes"].includes(key)||obj===book.project?4:2;
   if(hint) {const small=node("small",hint);small.id="hint-"+(++hintCount);input.setAttribute("aria-describedby",small.id);wrap.append(small);}
   input.addEventListener(options?"change":"input",()=>{obj[key]=input.value;persist();});
   wrap.append(input);parent.append(wrap);return input;
@@ -214,11 +226,11 @@ function example() {
   for(const line of [
     "EX1-R1: The humidity alarm HUMID_HIGH starts when relative humidity is greater than humidity_max_pct.",
     "EX1-R2: Once HUMID_HIGH is active, it clears only when relative humidity is less than or equal to humidity_clear_pct.",
-    "EX1-R3: humidity_clear_pct has a default of 65%, a step of 1%, and must be at least 1 percentage point below humidity_max_pct. A value that breaks this rule is rejected with bad_value and the old value stays.",
-    "EX1-R4: If the humidity reading becomes invalid or stale while HUMID_HIGH is active, HUMID_HIGH leaves causes and the humidity fault is reported. When a valid reading returns, the alarm starts again only if the reading is greater than humidity_max_pct.",
-    "EX1-R5: The user sets humidity_clear_pct in the menu under Limits > Humidity clear, or over serial with settings.set."
+    "EX1-R3: humidity_clear_pct has a default of 65%, a step of 1%, and must be at least 1 percentage point below humidity_max_pct. The menu refuses a value that breaks this rule, shows why, and keeps the old value.",
+    "EX1-R4: If the humidity reading becomes invalid while HUMID_HIGH is active, HUMID_HIGH is no longer shown as an alarm cause and the humidity fault is reported. When a valid reading returns, the alarm starts again only if the reading is greater than humidity_max_pct.",
+    "EX1-R5: The user sets humidity_clear_pct from Home under Settings > Limits > Humidity clear."
   ]) ul.append(node("li",line));
-  const more=node("p");const link=node("a","Download the full EX1 example with its tests");link.href="resources.html#example";more.append(link,".");
+  const more=node("p");const link=node("a","Read the full EX1 example with its tests");link.href="resources.html#read-ex1";more.append(link,".");
   box.append(ul,more);return box;
 }
 function featureEditor(f) {
@@ -227,31 +239,33 @@ function featureEditor(f) {
   field(meta,"Feature status",f,"status",["Planned","Implemented","Partly implemented","Dropped"]).addEventListener("change",showList);
   // The claim, the Results tab and the changes note belong to the final submission.
   // They appear once Project details > Submission is set to Final; their saved values are kept either way.
-  const final=detail("submission").toLowerCase()==="final";
+  const final=isFinal();
   if(final) {
     field(meta,"Claim this feature for final marking?",f,"claimed",["","Yes","No"]);
     meta.append(node("small","Claim only features your own tests show working."));
   }
   panel.append(meta);
-  if(!final && tab==="Results") tab="Requirements";
+  if(!final && ["Tests","Results","Access"].includes(tab)) tab="Requirements";
   const tabs=node("div",undefined,"wb-tabs");
-  for(const name of final ? ["Requirements","Tests","Notes","Results"] : ["Requirements","Tests","Notes"]) {
+  for(const name of final ? ["Requirements","Tests","Results","Access","Notes"] : ["Requirements","Notes"]) {
     const b=button(name,()=>{tab=name;render("tab");});b.setAttribute("aria-pressed",String(tab===name));tabs.append(b);
   }
   panel.append(tabs);
   if(tab==="Requirements") {
-    panel.append(node("p","What must the monitor do? Give the values, units and boundaries. Consider invalid data and how the user reaches the feature. Explain any points that do not apply."));
-    if(f.id.startsWith("X")) panel.append(node("p","Describe your method, comparison baseline and measurable target."));
+    panel.append(node("p","What must the monitor do? Give the values, units and boundaries. Consider invalid data and how the user reaches the feature from Home. Explain any points that do not apply. Write each requirement so that another engineer could test it."));
+    if(f.id.startsWith("X")) panel.append(node("p","Describe your method, the baseline you compare against, your measurable target and what your replay and physical tests will show."));
     panel.append(example());
     for(const r of f.requirements) {
       const box=entry(r.id);field(box,"Required behaviour",r,"text");
-      box.append(node("small","Linked tests: "+(f.tests.filter(t=>linked(t,r.id)).map(t=>t.id).join(", ")||"None yet")));
-      box.append(node("br"),button("Add a test for "+r.id,()=>{tab="Tests";addRecord(f,"test",r.id);},"quiet"));
+      if(final) {
+        box.append(node("small","Linked tests: "+(f.tests.filter(t=>linked(t,r.id)).map(t=>t.id).join(", ")||"None yet")));
+        box.append(node("br"),button("Add a test for "+r.id,()=>{tab="Tests";addRecord(f,"test",r.id);},"quiet"));
+      }
       box.append(button("Remove requirement",()=>removeEntry(f,f.requirements,r),"quiet"));
     }
     panel.append(button("Add requirement",()=>addRecord(f,"requirement"),"primary"));
   } else if(tab==="Tests") {
-    panel.append(node("p","Link each test to the requirements it checks. Give the input and the observation that will count as a pass."));
+    panel.append(node("p","Link each test to the requirements it checks. Give the starting state, what you do, how you measure it and the result that counts as a pass."));
     for(const t of f.tests) {
       const box=entry(t.id), group=node("fieldset");group.append(node("legend","Requirements covered"));
       if(!f.requirements.length) group.append(node("p","Add a requirement in the Requirements tab."));
@@ -264,22 +278,25 @@ function featureEditor(f) {
         };
         label.append(cb," "+r.id+" "+r.text.slice(0,80));group.append(label);
       }
-      box.append(group);field(box,"Test method or serial test filename",t,"how",null,"For a serial test write the file, for example Serial: tests/"+f.id+".jsonl. For a button, screen or physical test write By hand.");
-      field(box,"Starting conditions",t,"setup");field(box,"Actions or inputs",t,"actions");
+      box.append(group);field(box,"Test method",t,"how",null,f.id.startsWith("X")?"For example Replay with your data file name, or Physical with how you measure.":"For example Physical: tilt with a phone inclinometer, Buttons and screen, or Serial log.");
+      field(box,"Starting state",t,"setup");field(box,"Actions or inputs",t,"actions");
       field(box,"Expected result",t,"expected");box.append(button("Remove test",()=>removeEntry(f,f.tests,t),"quiet"));
     }
     panel.append(button("Add test",()=>addRecord(f,"test"),"primary"));
-    field(panel,"By-hand steps",f,"manual",null,"Identify the test and give numbered instructions another engineer can follow.");
+    field(panel,"Test procedures",f,"manual",null,"For each test, give numbered steps another engineer can follow on identical hardware without you there.");
   } else if(tab==="Notes") {
     field(panel,"Implementation notes",f,"notes",null,"Record design decisions, errors, fixes or questions to revisit.");
     if(final) field(panel,"Changes since first submission",f,"changes",null,"Describe what changed and why. Keep your first submission as a dated backup.");
-    else panel.append(node("p","The Results tab, the claim and the changes note appear when you set Submission to Final in Project details.","wb-hint"));
+    else panel.append(node("p","Tests, results, the access route, the claim and the changes note belong to the final submission. They appear when you set Submission to Final in Project details.","wb-hint"));
+  } else if(tab==="Access") {
+    panel.append(node("p","This is your Feature Access Guide entry for this feature. Start from Home."));
+    field(panel,"Access from Home",f,"access",null,"Give the button presses from Home, what the screen shows, how to operate the feature and how to return to Home. For a feature that works on its own, say how to trigger it or see its effect. Then give the navigation test you ran on the final binary and its result.");
   } else {
     if(!f.tests.length) panel.append(node("p","Add a test in the Tests tab to record its result."));
     for(const t of f.tests) {
       const box=entry(t.id);box.append(node("p","Expected: "+(t.expected||"Enter an expected result in Tests.")));
       field(box,"Test result",t,"status",["Not yet run","Pass","Fail"]);
-      field(box,"Actual observation or error",t,"observed");field(box,"Log filename or evidence reference",t,"log");
+      field(box,"Actual observation or error",t,"observed");field(box,"Evidence (log file, photo, measurement)",t,"log");
     }
   }
   const check=node("div",undefined,"wb-check");check.setAttribute("role","status");fillCheck(check,f);
@@ -306,15 +323,13 @@ function lineEditor(key,hint) {
 }
 function buttonMap() {
   const key="Button map";
-  panel.append(node("h3",key,"section"),node("p","Give the button press for each action your firmware supports. The action names are in section 7 of the serial protocol.","wb-hint"));
+  panel.append(node("h3",key,"section"),node("p","Give the button press for each action your firmware supports, such as next screen, open menu, confirm or cancel.","wb-hint"));
   const lines=book.project[key].split("\n").filter(line=>line.trim());
   const parsed=lines.map(cells);
   if(!lines.length || parsed.some(v=>v.length!==2)) {field(panel,key,book.project,key);return;}
   const rows=parsed.filter(v=>!(v[0]==="Action" && v[1]==="Button press") && !/^-+$/.test(v[0])).filter(v=>v[0]||v[1]);
   if(!rows.length) rows.push(["",""]);
   const write=()=>{book.project[key]=table(["Action","Button press"],rows.length?rows:[["",""]]);persist();};
-  const names=node("datalist");names.id="action-names";
-  for(const name of ["screen_next","screen_previous","screen_home","menu_open","menu_next","menu_previous","menu_increment","menu_decrement","menu_confirm","menu_cancel","restore_defaults","alarm_ack","arm","disarm","session_start","session_reset","save_settings","calibrate_start","calibrate_finish"]) names.append(new Option(name));
   const grid=node("table",undefined,"wb-rows");
   const head=grid.createTHead().insertRow();
   for(const title of ["Action","Button press",""]) {const th=node("th",title);th.scope="col";head.append(th);}
@@ -326,8 +341,7 @@ function buttonMap() {
       [0,1].forEach(col=>{
         const input=node("input");input.value=pair[col];
         input.setAttribute("aria-label",(col?"Button press":"Action")+" "+(i+1));
-        if(!col) input.setAttribute("list","action-names");
-        input.placeholder=col?"for example short press D2":"for example screen_next";
+        input.placeholder=col?"for example short press D2":"for example next screen";
         input.oninput=()=>{pair[col]=input.value;write();};
         tr.insertCell().append(input);
       });
@@ -335,7 +349,7 @@ function buttonMap() {
     });
   };
   draw();
-  panel.append(names,grid,button("Add action",()=>{rows.push(["",""]);draw();body.lastElementChild.querySelector("input").focus();}));
+  panel.append(grid,button("Add action",()=>{rows.push(["",""]);draw();body.lastElementChild.querySelector("input").focus();}));
 }
 function reviewTable() {
   const grid=node("table",undefined,"review");
@@ -374,11 +388,15 @@ function render(focusTarget) {
   if(view==="feature") featureEditor(selectedFeature());
   if(view==="project") {
     panel.append(node("h2","Project details"),node("p","Update the details used on your board. These sections appear in your Markdown document."));
-    lineEditor("Student details","The build ID must match the build_id your firmware sends in its ready and hello messages.");
+    lineEditor("Student details","The build ID must match the build ID your firmware prints on the serial port at start-up.");
+    panel.append(node("h3","Plan","section"));
+    field(panel,"Plan",book.project,"Plan",null,"In a few sentences, say why you chose these features and the order you will build them in.");
     lineEditor("Build and setup");
+    panel.append(node("h3","Home screen","section"));
+    field(panel,"Home screen",book.project,"Home screen",null,"What Home shows, and how the user gets from Home to the measurements, the settings and your other features.");
     buttonMap();
-    panel.append(node("h3","Extra state fields and event kinds","section"));
-    field(panel,"Extra state fields and event kinds",book.project,"Extra state fields and event kinds",null,"Describe each field you add to the state reply, with its type and unit, and every event kind your event list uses. Write None if there are none.");
+    panel.append(node("h3","Serial output","section"));
+    field(panel,"Serial output",book.project,"Serial output",null,"Describe the layout of your live serial output (C12), its update rate, and an example line.");
     panel.append(node("h3","Known limitations","section"));
     field(panel,"Known limitations",book.project,"Known limitations",null,"Record anything that does not work as your requirements say, or that you could not test.");
     for(const wrap of panel.querySelectorAll("h3.section + .wb-field")) wrap.classList.add("plain");
@@ -392,14 +410,15 @@ function render(focusTarget) {
       grid,
       node("h3","Download the file for Blackboard","section"),
       node("p","This file is named REQUIREMENTS_AND_TESTS.md. Upload it on Blackboard. The dated backups from the toolbar are for you to keep and are not submitted."));
-    // Check before the file that is marked: details filled in, and every planned feature has linked requirements and tests.
+    // Check before the file that is marked: details filled in, and every planned feature complete for this submission.
     const missing=[["name","Name"],["student number","Student number"],["build id","Build ID"]].filter(([key])=>!detail(key)).map(([,label])=>label);
     const gapped=book.items.filter(f=>f.status!=="Dropped" && issues(f).length);
     const check=node("div",undefined,"wb-check");
     check.classList.toggle("done",!missing.length && !gapped.length);
     const list=node("ul");
     list.append(node("li",missing.length ? "Missing in Project details: "+missing.join(", ")+"." : "Name, student number and build ID are filled in."));
-    list.append(node("li",gapped.length ? (book.items.length-gapped.length)+" of "+book.items.length+" features have their requirements and tests linked. Still to finish: "+gapped.map(f=>f.label).join(", ")+"." : "Every planned feature has requirements with linked tests."));
+    const what=isFinal() ? "requirements, linked tests and an access route" : "requirements";
+    list.append(node("li",gapped.length ? (book.items.length-gapped.length)+" of "+book.items.length+" features have their "+what+". Still to finish: "+gapped.map(f=>f.label).join(", ")+"." : "Every planned feature has its "+what+"."));
     check.append(node("b",missing.length||gapped.length ? "Before you submit" : "Ready to download"),list);
     const done=node("p","",undefined);done.setAttribute("role","status");
     const download=()=>{backup(true);done.textContent="Downloaded REQUIREMENTS_AND_TESTS.md at "+clock(new Date().toISOString())+". Upload it on Blackboard with your other files.";};
@@ -433,7 +452,7 @@ $("#new-book").onclick=()=>{
       book=emptyBook();book.items=features.filter(f=>f.group==="Core").map(f=>featureRecord(f.id,f.label,f.title));
       active=book.items[0].id;view="project";tab="Requirements";downloaded="";changed=false;
       persist(false);render();
-      $("#notice").replaceChildren("New workbook started with the 13 core features. Enter your details below, then ");
+      $("#notice").replaceChildren("New workbook started with the 12 core features. Enter your details below, then ");
       const link=node("a","choose your other features in the picker");link.href="picker.html";$("#notice").append(link,".");
     });
 };

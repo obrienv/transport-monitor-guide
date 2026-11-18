@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Challenges | Transport Monitor</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="guide.css"></head>
+<body><a class="skip" href="#main">Skip to content</a><header><div class="mast"><a href="index.html" class="brand">Transport Monitor</a><span>SETU / Embedded Systems</span></div><nav class="tabs" aria-label="Project guide"><a href="index.html">Roadmap</a><a href="brief.html">Project brief</a><a href="picker.html">Feature picker</a><a href="workbook.html">Workbook</a><a href="advanced.html" aria-current="page">Challenges</a><a href="protocol.html">Serial output</a><a href="resources.html">Resources</a></nav></header>
+<main id="main" class="doc">
+
+<h1>Challenges</h1>
+<p class="sub">Embedded Systems. Advanced challenges X1 to X6. Up to 5 marks each, at most two.</p>
+
+<p class="draft"><strong>Draft, 17 November 2026.</strong> The proposed minimum for each challenge has not yet been checked on the lab hardware, so the numbers may change. The serial replay format will be published before you start the challenges.</p>
+
+<nav aria-label="Challenges contents">
+<ol>
+  <li><a href="#what">What a challenge asks</a></li>
+  <li><a href="#each">What you do for each challenge</a></li>
+  <li><a href="#marks">How a challenge is marked</a></li>
+  <li><a href="#list">The six challenges</a></li>
+</ol>
+</nav>
+
+<h2 id="what">1. What a challenge asks</h2>
+<p>The challenges are for students who want the top of the mark range. Each one is a real engineering problem. An AI tool can write code for any of them, but whether that code works depends on timing, memory and signal behaviour on the board, and you only find that out by measuring it.</p>
+<p>The challenges are not equally hard. Pick the two that suit you, and read the proposed minimum before you choose. A third challenge earns nothing.</p>
+
+<h2 id="each">2. What you do for each challenge</h2>
+<ol>
+  <li><strong>Write measurable requirements,</strong> with units, boundaries and the limits of your method.</li>
+  <li><strong>Run the algorithm on the ESP32-S3.</strong> A result worked out on a PC and shown as device output does not count.</li>
+  <li><strong>Build the common serial replay,</strong> so that replayed samples go through the same code as real IMU samples. See <a href="protocol.html#replay">Serial replay</a>. One replay interface serves both of your challenges.</li>
+  <li><strong>Run replay tests</strong> with stated expected results, and keep the inputs, the outputs and your analysis.</li>
+  <li><strong>Test on the real sensor.</strong> X1 and X2 also need real timing and buffer measurements.</li>
+  <li><strong>Compare with the baseline</strong> given in the description, using the same input. A deliberately weak baseline makes the comparison worthless.</li>
+  <li><strong>Report your results,</strong> with uncertainty, failures and limits, and keep the data.</li>
+  <li><strong>Add the challenge to your Feature Access Guide,</strong> and show that the rest of the monitor still works.</li>
+</ol>
+
+<h2 id="marks">3. How a challenge is marked</h2>
+<p>Each challenge is worth up to 5 marks, and only two count. Like every feature, a challenge is marked half on how well it works and half on your requirements, tests and evidence for it. Documents cannot carry a challenge that does not work. The exact rule for partial credit will be published.</p>
+<p>The lecturer repeats tests with replay data that you have not seen, and checks selected behaviour on the board.</p>
+
+<h2 id="list">4. The six challenges</h2>
+<noscript>Enable JavaScript to read the challenge descriptions.</noscript>
+<div data-catalog="Challenges"></div>
+
+</main><footer>SETU · Fourth-year Embedded Systems <a href="index.html">Project roadmap</a></footer><script src="page.js"></script><script src="features.js"></script><script src="catalog.js"></script></body></html>

@@ -1,15 +1,17 @@
 /* The visible Markdown is the interchange format. Read the text on every import. */
 const projectSections = {
   "Student details": "- Name:\n- Student number:\n- Build ID:\n- Submission: First\n- Date:",
+  "Plan": "",
   "Build and setup": "- Toolchain and version:\n- Libraries and versions:\n- Board settings:\n- How to build:\n- How to flash the binary:\n- Accelerometer range:\n- IMU sample rate:\n- AHT20 read interval:",
+  "Home screen": "",
   "Button map": "| Action | Button press |\n|---|---|\n| | |",
-  "Extra state fields and event kinds": "",
+  "Serial output": "",
   "Known limitations": ""
 };
 const testFields = ["id","covers","how","setup","expected","status","actions","observed","log"];
-const testHead = ["Test","Covers","How","Setup","Expected result","Result","Actions or inputs","Actual observation","Log or evidence"];
+const testHead = ["Test","Covers","Method","Starting state","Expected result","Result","Actions or inputs","Actual observation","Evidence"];
 function featureRecord(id, label, title) {
-  return {id,label,title,status:"Planned",claimed:"",requirements:[],tests:[],manual:"",notes:"",changes:""};
+  return {id,label,title,status:"Planned",claimed:"",requirements:[],tests:[],manual:"",access:"",notes:"",changes:""};
 }
 function emptyBook() { return {project:{...projectSections}, items:[], extra:""}; }
 function newTest(id) {
@@ -34,7 +36,10 @@ function table(head, rows) {
 // Protect heading-like lines typed into a multiline field from becoming document headings.
 function block(text) { return text.replace(/^([\\]*#)/gm,"\\$1"); }
 function unblock(text) { return text.replace(/^\\([\\]*#)/gm,"$1"); }
+// The first submission holds requirements only. Tests, results, the access route and changes belong to the final submission.
+function finalStage(book) { return /^- Submission:[ \t]*final[ \t]*$/im.test(book.project["Student details"]); }
 function markdown(book) {
+  const final=finalStage(book);
   const lines=["# Transport Monitor: Requirements and Tests"];
   function section(title,body) { lines.push(title,"",body,""); }
   section("## Student details",block(book.project["Student details"]));
@@ -44,10 +49,11 @@ function markdown(book) {
   for (const f of book.items) {
     lines.push("### "+f.label+": "+cell(f.title),"");
     section("#### Requirements",f.requirements.map(r=>"- "+r.id+": "+cell(r.text)).join("\n"));
-    section("#### Tests",table(testHead,f.tests.map(t=>testFields.map(key=>t[key]))));
-    section("#### By-hand steps",block(f.manual));
+    if(final || f.tests.length) section("#### Tests",table(testHead,f.tests.map(t=>testFields.map(key=>t[key]))));
+    if(final || f.manual.trim()) section("#### Test procedures",block(f.manual));
+    if(final || (f.access||"").trim()) section("#### Access from Home",block(f.access||""));
     section("#### Implementation notes",block(f.notes));
-    section("#### Changes since first submission",block(f.changes));
+    if(final || f.changes.trim()) section("#### Changes since first submission",block(f.changes));
   }
   section("## Known limitations",block(book.project["Known limitations"]));
   if(book.extra) section("## Additional imported text",block(book.extra));
@@ -99,7 +105,7 @@ function parseBook(source) {
       const parts=splitSections(content,4);
       keep(name,parts.intro);
       for(const [part,txt] of parts.entries) {
-        const fields={"By-hand steps":"manual","Implementation notes":"notes","Changes since first submission":"changes"};
+        const fields={"Test procedures":"manual","By-hand steps":"manual","Access from Home":"access","Implementation notes":"notes","Changes since first submission":"changes"};
         if(Object.hasOwn(fields,part)) {f[fields[part]] += (f[fields[part]]?"\n":"")+unblock(txt);continue;}
         if(part!=="Requirements" && part!=="Tests") {keep(name+" / "+part,txt);continue;}
         for(const line of txt.split("\n")) {

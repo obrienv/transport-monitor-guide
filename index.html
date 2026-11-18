@@ -10,7 +10,7 @@
 <header>
 <div class="mast"><a href="index.html" class="brand">Transport Monitor</a><span>SETU / Embedded Systems</span>
 </div>
-<nav class="tabs" aria-label="Project guide"><a href="index.html" aria-current="page">Roadmap</a><a href="brief.html">Project brief</a><a href="picker.html">Feature picker</a><a href="workbook.html">Workbook</a><a href="protocol.html">Serial protocol</a><a href="resources.html">Resources</a>
+<nav class="tabs" aria-label="Project guide"><a href="index.html" aria-current="page">Roadmap</a><a href="brief.html">Project brief</a><a href="picker.html">Feature picker</a><a href="workbook.html">Workbook</a><a href="advanced.html">Challenges</a><a href="protocol.html">Serial output</a><a href="resources.html">Resources</a>
 </nav>
 </header>
 <main id="main">
@@ -44,20 +44,20 @@
 </article>
 <article id="step-2" class="step"><input type="checkbox" id="done-2">
 <div>
-<h3><label for="done-2">2. Write requirements and tests</label>
+<h3><label for="done-2">2. Write your requirements</label>
 </h3>
-<p>Open your project workbook. For each feature, define the behaviour and write a test with an observable result.</p><a href="workbook.html">Write requirements and tests</a><a href="brief.html#good-requirement">What a good requirement contains</a><a href="resources.html#read-ex1">Read the worked EX1 example</a>
+<p>Open your project workbook. For each feature, write requirements exact enough that another engineer could test them. No test plan is needed yet.</p><a href="workbook.html">Write your requirements</a><a href="brief.html#good-requirement">What a good requirement contains</a><a href="resources.html#read-ex1">Read the worked EX1 example</a>
 </div>
 </article>
 <article id="step-3" class="step"><input type="checkbox" id="done-3">
 <div>
 <h3><label for="done-3">3. Build the early binary</label>
 </h3>
-<p>Start both sensors and report their health (C01), read the AHT20 and the ICM-20948 (C02, C03), answer serial test messages (C11) and send the state in the standard format (C12).</p><a href="brief.html#early">Check the early binary scope</a><a href="protocol.html#commands">Serial commands</a><a href="resources.html#pc-test">How to send test messages</a>
+<p>Start both sensors and report their health (C01), read the AHT20 and the ICM-20948 (C02, C03), and print the live readings and sensor health on the serial port (C12).</p><a href="brief.html#early">Check the early binary scope</a><a href="protocol.html#c12">What C12 prints</a>
 </div>
 </article>
 <div class="handin"><b>Submit on Blackboard</b>
-<p>Your requirements and test plan, plus the early binary.</p><span class="deadline">Deadline to be announced</span>
+<p>Your requirements, plus the early binary.</p><span class="deadline">Deadline to be announced</span>
 </div>
 </div>
 </section>
@@ -70,14 +70,14 @@
 <div>
 <h3><label for="done-4">4. Build the rest</label>
 </h3>
-<p>Use your feedback to revise the requirements. Implement the full core and the features in your plan.</p><a href="brief.html#core">Read the feature descriptions</a><a href="protocol.html#settings">Setting and action names</a><a href="workbook.html">Open your workbook</a>
+<p>Use your feedback to revise the requirements. Implement the full core, a Home screen and the features in your plan. Challenges also need the serial replay.</p><a href="brief.html#core">Read the feature descriptions</a><a href="brief.html#home">Home screen</a><a href="advanced.html">Challenges</a>
 </div>
 </article>
 <article id="step-5" class="step"><input type="checkbox" id="done-5">
 <div>
 <h3><label for="done-5">5. Test on your board</label>
 </h3>
-<p>Run your serial test files and by-hand checks. Save the logs and record what passed or failed.</p><a href="brief.html#tested">Check how testing works</a><a href="workbook.html">Record results in your workbook</a><a href="resources.html#pc-test">PC test program</a>
+<p>Write a test for each requirement and run it on the real board. Record the expected and actual results and keep the evidence. Write your Feature Access Guide and repeat your navigation tests on the final binary.</p><a href="brief.html#tested">Check how testing works</a><a href="brief.html#home">Feature Access Guide</a><a href="workbook.html">Record results in your workbook</a>
 </div>
 </article>
 <article id="step-6" class="step"><input type="checkbox" id="done-6">
@@ -88,7 +88,7 @@
 </div>
 </article>
 <div class="handin"><b>Submit on Blackboard</b>
-<p>Your final binary, requirements and test document, serial test files and logs, source code and build instructions.</p><span class="deadline">Deadline to be announced</span>
+<p>Your final binary, source code and build instructions, requirements, tests with results and evidence, and your Feature Access Guide.</p><span class="deadline">Deadline to be announced</span>
 </div>
 </div>
 </section>
