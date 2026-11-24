@@ -6,12 +6,12 @@
 <h1>Serial output and replay</h1>
 <p class="sub">Embedded Systems. Serial output for the core (C12) and serial replay for the challenges.</p>
 
-<p class="draft"><strong>Draft, 17 November 2026.</strong> The core no longer has a serial test protocol. You test the core and the standard features on the real board. Serial replay is needed only for the challenges, and its exact format will be published before you start them.</p>
+<p>Use live serial output when testing the monitor on the board. The serial replay format for advanced challenges will be published before you start them.</p>
 
 <nav aria-label="Serial page contents">
 <ol>
   <li><a href="#c12">Live serial output (C12)</a></li>
-  <li><a href="#early">What the early binary prints</a></li>
+  <li><a href="#early">What the Part 1 binary prints</a></li>
   <li><a href="#replay">Serial replay for the challenges</a></li>
   <li><a href="#values">Operating values</a></li>
 </ol>
@@ -21,17 +21,17 @@
 <p>Your firmware prints what the monitor is measuring and deciding on the USB serial port, while it runs. Nothing has to be sent to the board to get this output. You use it to test your own firmware, and the lecturer uses it to watch your binary during a check.</p>
 <p>The output must show:</p>
 <ul>
-  <li>the live temperature, relative humidity, acceleration (x, y, z) and angular rate (x, y, z), with units;</li>
+  <li>the live temperature, relative humidity, acceleration (x, y, z) with units. Include angular rate (x, y, z) in Part 2;</li>
   <li>the health of each sensor separately;</li>
-  <li>the current alarm causes and faults, once your firmware has them;</li>
+  <li>the current alarm causes and faults;</li>
   <li>your build ID, printed once at start-up.</li>
 </ul>
-<p>You choose the layout. A person must be able to read it in a serial monitor, and it must be regular enough to save as a log and compare later. State your layout and update rate in your requirements for C12. This line is only an example:</p>
+<p>You choose the layout. A person must be able to read it in a serial monitor, and it should update regularly so you can observe the device during a test. State your layout and update rate in your requirements for C12. This Part 2 line is an example:</p>
 <pre>t=12.40s T=22.6C RH=41.2% acc=(0.02,-0.01,1.00)g gyro=(0.4,-0.2,0.1)dps AHT20=OK ICM=OK alarms=none faults=none</pre>
-<p>Keep debug text to a minimum on this port, or mark it clearly, so that it does not hide the live output in your logs.</p>
+<p>Keep debug text to a minimum on this port, or mark it clearly, so that the live output is easy to read during tests.</p>
 
-<h2 id="early">2. What the early binary prints</h2>
-<p>The early binary in the first submission runs both sensors and prints their readings and health in your C12 layout. The alarm causes and faults can be empty, because the limit checks come later. The screen, the buttons and the menu are not needed yet.</p>
+<h2 id="early">2. What the Part 1 binary prints</h2>
+<p>Part 1 reports live temperature, humidity and three-axis acceleration with units, sensor health, faults and distinct alarms. Mark unavailable readings invalid. Include the current acceleration alarm in the status output. It is active when valid total acceleration magnitude is above 1.5 g and clears on a valid measurement at or below 1.5 g. State your output update rate and show activation and clearing in your physical test. Angular rate is added in Part 2.</p>
 
 <h2 id="replay">3. Serial replay for the challenges</h2>
 <p>Every challenge (X1 to X6) needs a small serial replay interface. The core and the standard features do not.</p>
@@ -50,7 +50,7 @@
 <p>These values may change after they are checked on the lab hardware.</p>
 <table>
   <tr><th>Value</th><th>Setting</th><th>Why</th></tr>
-  <tr><td>Accelerometer range</td><td>±4 g or more (±4, ±8 or ±16 g)</td><td>A ±2 g range clips a single-axis knock before it reaches the 2.5 g limit.</td></tr>
+  <tr><td>Accelerometer range</td><td>Choose a range that covers the measurements you need</td><td>Allow headroom for the largest acceleration you intend to measure, particularly for shock recording.</td></tr>
   <tr><td>IMU sample rate</td><td>At least 50 Hz, with the screen running</td><td>Knocks are short, and a slower rate misses them.</td></tr>
   <tr><td>Upright reference</td><td>+Z: breakout flat, components facing up, reading about (0, 0, +1) g</td><td>Tilt is measured from this direction. Check the printed axes and signs on your board.</td></tr>
   <tr><td>Smallest usable acceleration for tilt</td><td>0.5 g</td><td>Below this the direction of gravity is not known.</td></tr>

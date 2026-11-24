@@ -1,17 +1,14 @@
 /* The visible Markdown is the interchange format. Read the text on every import. */
 const projectSections = {
-  "Student details": "- Name:\n- Student number:\n- Build ID:\n- Submission: First\n- Date:",
-  "Plan": "",
-  "Build and setup": "- Toolchain and version:\n- Libraries and versions:\n- Board settings:\n- How to build:\n- How to flash the binary:\n- Accelerometer range:\n- IMU sample rate:\n- AHT20 read interval:",
-  "Home screen": "",
-  "Button map": "| Action | Button press |\n|---|---|\n| | |",
-  "Serial output": "",
-  "Known limitations": ""
+  "Student details": "- Name:\n- Student number:\n- Build ID:\n- Submission: First",
+  "Optional setup instructions": "",
+  "Earlier feature entries": ""
 };
+const earlierProjectSections = ["Plan","Build and setup","Serial output","Known limitations","Home screen","Button map"];
 const testFields = ["id","covers","how","setup","expected","status","actions","observed","log"];
-const testHead = ["Test","Covers","Method","Starting state","Expected result","Result","Actions or inputs","Actual observation","Evidence"];
+const testHead = ["Test","Covers","Method","Starting state","Expected result","Result","Actions or inputs","Actual observation","Supporting data"];
 function featureRecord(id, label, title) {
-  return {id,label,title,status:"Planned",claimed:"",requirements:[],tests:[],manual:"",access:"",notes:"",changes:""};
+  return {id,label,title,status:"Planned",claimed:"",requirements:[],tests:[],manual:"",access:"",notes:""};
 }
 function emptyBook() { return {project:{...projectSections}, items:[], extra:""}; }
 function newTest(id) {
@@ -36,26 +33,29 @@ function table(head, rows) {
 // Protect heading-like lines typed into a multiline field from becoming document headings.
 function block(text) { return text.replace(/^([\\]*#)/gm,"\\$1"); }
 function unblock(text) { return text.replace(/^\\([\\]*#)/gm,"$1"); }
-// The first submission holds requirements only. Tests, results, the access route and changes belong to the final submission.
+// Older documents use First or Final. New documents identify the part explicitly.
 function finalStage(book) { return /^- Submission:[ \t]*final[ \t]*$/im.test(book.project["Student details"]); }
 function markdown(book) {
-  const final=finalStage(book);
+  const final=finalStage(book) || /^- Submission: Part [12]$/m.test(book.project["Student details"]);
   const lines=["# Transport Monitor: Requirements and Tests"];
   function section(title,body) { lines.push(title,"",body,""); }
   section("## Student details",block(book.project["Student details"]));
   section("## Feature list",table(["ID","Feature","Status","Claimed"],book.items.map(f=>[f.label,f.title,f.status,f.claimed])));
-  for (const key of Object.keys(projectSections).slice(1,-1)) section("## "+key,block(book.project[key]));
+  for (const key of ["Optional setup instructions","Earlier feature entries"]) {
+    if(book.project[key]?.trim()) section("## "+key,block(book.project[key]));
+  }
   lines.push("## Features","");
   for (const f of book.items) {
     lines.push("### "+f.label+": "+cell(f.title),"");
     section("#### Requirements",f.requirements.map(r=>"- "+r.id+": "+cell(r.text)).join("\n"));
-    if(final || f.tests.length) section("#### Tests",table(testHead,f.tests.map(t=>testFields.map(key=>t[key]))));
+    if(final || f.tests.length) {
+      const columns=f.tests.some(t=>t.log?.trim()) ? testHead.length : testHead.length-1;
+      section("#### Tests",table(testHead.slice(0,columns),f.tests.map(t=>testFields.slice(0,columns).map(key=>t[key]))));
+    }
     if(final || f.manual.trim()) section("#### Test procedures",block(f.manual));
-    if(final || (f.access||"").trim()) section("#### Access from Home",block(f.access||""));
+    if(final || (f.access||"").trim()) section("#### Feature access",block(f.access||""));
     section("#### Implementation notes",block(f.notes));
-    if(final || f.changes.trim()) section("#### Changes since first submission",block(f.changes));
   }
-  section("## Known limitations",block(book.project["Known limitations"]));
   if(book.extra) section("## Additional imported text",block(book.extra));
   return lines.join("\n");
 }
@@ -84,7 +84,7 @@ function parseBook(source) {
   for (const [heading,body] of doc.entries) {
     if(seen.has(heading)) {keep("Repeated section: "+heading,body);continue;}
     seen.add(heading);
-    if(Object.hasOwn(projectSections,heading)) {book.project[heading]=unblock(body);continue;}
+    if(Object.hasOwn(projectSections,heading) || earlierProjectSections.includes(heading)) {book.project[heading]=unblock(body);continue;}
     if(heading==="Additional imported text") {book.extra=unblock(body);continue;}
     if(heading==="Feature list") {
       for(const line of body.split("\n")) {
@@ -105,7 +105,7 @@ function parseBook(source) {
       const parts=splitSections(content,4);
       keep(name,parts.intro);
       for(const [part,txt] of parts.entries) {
-        const fields={"Test procedures":"manual","By-hand steps":"manual","Access from Home":"access","Implementation notes":"notes","Changes since first submission":"changes"};
+        const fields={"Test procedures":"manual","By-hand steps":"manual","Access from Home":"access","Feature access":"access","Implementation notes":"notes","Changes since first submission":"notes"};
         if(Object.hasOwn(fields,part)) {f[fields[part]] += (f[fields[part]]?"\n":"")+unblock(txt);continue;}
         if(part!=="Requirements" && part!=="Tests") {keep(name+" / "+part,txt);continue;}
         for(const line of txt.split("\n")) {
@@ -114,7 +114,7 @@ function parseBook(source) {
             if(r) {f.requirements.push({id:r[1],text:uncell(r[2])});continue;}
           } else {
             const v=cells(line);
-            if([6,9].includes(v.length) && /^[A-Z]+\d+-T\d+$/.test(v[0])) {
+            if([6,8,9].includes(v.length) && /^[A-Z]+\d+-T\d+$/.test(v[0])) {
               const t=newTest(v[0]);v.forEach((value,i)=>t[testFields[i]]=value);
               t.covers=t.covers.replace(/\bR(\d+)\b/g,(m,n,offset,str)=>offset>0 && str[offset-1]==="-" ? m : f.id+"-R"+n);
               t.status ||= "Not yet run";f.tests.push(t);continue;
@@ -129,5 +129,20 @@ function parseBook(source) {
   book.items=[...records.values()];
   if(!book.items.length) throw Error("No feature IDs were found. Keep your original file and check its feature headings.");
   book.extra=[book.extra,...leftovers].filter(Boolean).join("\n\n");
+  return preserveEarlierDetails(book);
+}
+
+function preserveEarlierDetails(book) {
+  const details=book.project["Student details"];
+  const date=details.match(/^- Date:[ \t]*(.*)$/m)?.[1].trim();
+  book.project["Student details"]=details.replace(/^- Date:[^\n]*(?:\n|$)/gm,"").trimEnd();
+  const earlier=date && date!=="<date>" ? ["Earlier submission date: "+date] : [];
+  for(const key of earlierProjectSections) {
+    const value=book.project[key]?.trim();
+    if(value && value!=="| Action | Button press |\n|---|---|\n| | |" &&
+       (key!=="Build and setup" || value.split("\n").some(line=>!/^- [^:]+:\s*$/.test(line)))) earlier.push(key+"\n"+value);
+    delete book.project[key];
+  }
+  if(earlier.length) book.extra=[book.extra,...earlier].filter(Boolean).join("\n\n");
   return book;
 }

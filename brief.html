@@ -4,214 +4,76 @@
 <main id="main" class="doc">
 
 <h1>Project brief</h1>
-<p class="sub">Embedded Systems. 40 marks.</p>
+<p class="sub">Build a monitor for sensitive equipment. Submit the basic monitor first, then extend and retest it. The project is worth 40 marks.</p>
+<nav aria-label="Brief contents"><ul>
+  <li><a href="#early">Part 1: Basic monitor</a></li>
+  <li><a href="#plan">Part 2: Extended monitor</a></li>
+  <li><a href="#marks">What to submit</a></li>
+  <li><a href="#tested">Requirements and tests</a></li>
+</ul></nav>
 
-<p><a href="index.html">Follow the six project steps</a> or <a href="picker.html">choose your features</a>.</p><nav aria-label="Brief contents">
+<h2 id="early">Part 1: Basic monitor (10 marks)</h2>
+<p>Build the nine compulsory features below. Write requirements and tests in the <a href="workbook.html?part=1">Part 1 workbook</a>. Run the tests on your board and record what happened.</p>
+<table class="catalog"><thead><tr><th scope="col">ID</th><th scope="col">What the monitor must do</th></tr></thead><tbody>
+<tr><th scope="row" id="C01">C01</th><td>Start both sensors and report their health separately.</td></tr>
+<tr><th scope="row" id="C02">C02</th><td>Read temperature and relative humidity from the AHT20.</td></tr>
+<tr><th scope="row" id="C03">C03</th><td>Read acceleration on all three axes from the ICM-20948.</td></tr>
+<tr><th scope="row" id="C04">C04</th><td>Raise environmental alarms below 10 &deg;C, above 28 &deg;C, or above 70% RH. Clear each alarm when a valid reading returns within its limit.</td></tr>
+<tr><th scope="row" id="C05">C05</th><td>Calculate total acceleration magnitude from the three axes in g, including gravity. Indicate an alarm on the TFT and over USB serial above 1.5 g. Clear it on a valid reading at or below 1.5 g.</td></tr>
+<tr><th scope="row" id="C07">C07</th><td>Identify each active alarm cause separately.</td></tr>
+<tr><th scope="row" id="C08">C08</th><td>Report missing sensors and failed or invalid readings as faults. Mark unavailable measurements and use valid readings to establish whether a measurement alarm has cleared.</td></tr>
+<tr><th scope="row" id="C09">C09</th><td>Show live measurements with units, individual sensor health, active alarm causes, faults and unavailable values on the TFT. Choose any readable layout. You can use one or several screens, with or without buttons or a Home screen.</td></tr>
+<tr><th scope="row" id="C12">C12</th><td>Print readable measurements, alarm and fault status and individual sensor health over <a href="protocol.html#early">USB serial</a>.</td></tr>
+</tbody></table>
+<p>On the board, test normal operation, one environmental alarm starting and clearing, the acceleration alarm starting and clearing, and one sensor fault. Observe both acceleration alarm states on the TFT and over serial. Use controlled checks for exact boundary values if needed, and state what your physical test showed.</p>
+<p>Part 1 marking is provisionally split into requirements (2), observed operation (4), test design (2), and recorded test results (2).</p>
+
+<h2 id="plan">Part 2: Extended monitor (30 marks)</h2>
+<p>Open the <a href="workbook.html?part=2">Part 2 workbook</a>. Choose <strong>Start from Part 1</strong> on the same browser, or import your Part 1 Markdown. Use your feedback to revise the requirements and tests. Test your additions and repeat relevant Part 1 tests on the final binary, using the final alarm limits and interface. Record fresh results and check whether any optional setup instructions need updating.</p>
+
+<h3 id="core">Part 2A: Compulsory features (8 marks)</h3>
+<table class="catalog"><thead><tr><th scope="col">ID</th><th scope="col">Feature</th></tr></thead><tbody>
+<tr><th scope="row" id="P2-C1">P2-C1</th><td><strong>Gyroscope measurements.</strong> Read angular rate on all three axes and report it with units over USB serial (C03, C12).</td></tr>
+<tr><th scope="row" id="P2-C2">P2-C2</th><td id="C06"><strong>Static tilt.</strong> Measure tilt from a fixed upright reference and report a separate tilt alarm above the default 30&deg; limit (C06, C07).</td></tr>
+<tr><th scope="row" id="P2-C3">P2-C3</th><td id="C10"><strong>Home and button navigation.</strong> Show overall monitoring status, alarms, faults and the health of each sensor on Home. Use D0, D1 and D2 to access measurements, settings and other features (C09, C10). Holding D0 for at least 2 seconds returns to Home from any screen. Monitoring continues while menus are open.</td></tr>
+<tr><th scope="row" id="P2-C4">P2-C4</th><td id="C13"><strong>Editable alarm limits.</strong> Let the user edit the minimum and maximum temperature, maximum humidity, maximum acceleration and maximum tilt. Check proposed values and provide confirm, cancel and restore defaults. Apply confirmed limits to the actual alarms. Restore defaults sets the limits to 10 &deg;C, 28 &deg;C, 70% RH, 1.5 g and 30&deg; (C13).</td></tr>
+</tbody></table>
+<p>You can reuse additions you built early. Demonstrate and test them on the Part 2 firmware for Part 2A credit. The 8 marks cover the additions, their integration and repeat testing.</p>
+<h4 id="home">Feature access and testing</h4>
+<p>For each feature in both parts, write its requirements, how to access or observe it, and tests that check its requirements. Give the exact button presses where needed. In Part 2, start from Home for features you operate. For automatic features, say how to trigger or observe them. Include the return-to-Home check in the navigation tests.</p>
+
+<h3 id="standard">Part 2B: Selectable standard features (up to 12 marks)</h3>
+<p>Use the <a href="picker.html">feature picker</a> to choose up to three features per category, including prerequisites. Each is worth 1 mark, split equally between operation and verification. If features act on the same alarm, test them individually and together.</p>
+<details open><summary>Standard feature catalogue</summary>
+<h4>Alarms</h4><div data-catalog="Alarms"></div>
+<h4>Configuration</h4><div data-catalog="Configuration"></div>
+<h4>Logging</h4><div data-catalog="Logging"></div>
+<h4>Signal processing and robustness</h4><div data-catalog="Signal processing and robustness"></div>
+</details>
+
+<h3 id="advanced">Part 2C: Advanced add-ons (up to 10 marks)</h3>
+<p>Choose up to two <a href="advanced.html">advanced challenges</a> worth up to 5 marks each. Set and justify measurable objectives. Use real hardware, common serial replay and a comparison with a simpler method to show the performance you achieved.</p>
+<details open><summary>Advanced challenge catalogue</summary>
+<div data-catalog="Challenge summary"></div>
+</details>
+
+<h2 id="marks">What to submit</h2>
+<p>For each part, submit three items on Blackboard: your source code, one full merged firmware image (<code>*.ino.merged.bin</code>) and your workbook Markdown. Record your test results and measurements in the workbook. Add setup instructions only if the lecturer needs to do something specific to your submission before running the tests. Deadlines will be announced separately.</p>
+
+<h3 id="firmware-image">Export and check your merged firmware image</h3>
+<p>Use the same file format as in the Firmware Lab. The merged image packages the flash bootloader, partition table, application and any other flash components required by the build in one file. The similarly named <code>*.ino.bin</code> contains the application component only.</p>
 <ol>
-  <li><a href="#build">What you build</a></li>
-  <li><a href="#job">Your job</a></li>
-  <li><a href="#assessed">What is assessed</a></li>
-  <li><a href="#marks">Marks and submissions</a></li>
-  <li><a href="#tested">How your work is checked</a></li>
-  <li><a href="#home">Home screen and Feature Access Guide</a></li>
-  <li><a href="#core">Core features</a></li>
-  <li><a href="#standard">Standard features</a></li>
-  <li><a href="#advanced">Challenges</a></li>
-  <li><a href="#calc">How your mark is calculated</a></li>
-  <li><a href="#rules">Rules</a></li>
-  <li><a href="#later">What comes later</a></li>
+  <li>In Arduino IDE, select <strong>Sketch &rarr; Export Compiled Binary</strong>. Then select <strong>Sketch &rarr; Show Sketch Folder</strong> and find <code>*.ino.merged.bin</code> in the board-specific folder under <code>build</code>, as in Stage 3 of the lab.</li>
+  <li>Use the Stage 7 browser-flashing procedure to check your own exported image. Select the merged file in the first file row, set the flash offset to <code>0x0</code>, leave the other file rows empty and program the board.</li>
+  <li>Reset the board and check that the monitor starts and prints the Build ID recorded in the workbook. Submit that merged image and the source used to build it.</li>
 </ol>
-</nav>
 
-<h2 id="build">1. What you build</h2>
-<p>You build the firmware for a monitor that travels with sensitive equipment. The monitor measures temperature, humidity, acceleration and tilt. It raises an alarm when a measurement goes outside its limit, and it reports a fault when a sensor stops giving valid data. It shows its state on the screen, starting from a Home screen, and the user changes its settings with the three buttons.</p>
-<p>Everyone uses the same hardware:</p>
-<ul>
-  <li>Adafruit ESP32-S3 Reverse TFT Feather (microcontroller board with a screen and three buttons, D0, D1 and D2)</li>
-  <li>AHT20 temperature and humidity sensor</li>
-  <li>ICM-20948 nine-axis IMU (inertial measurement unit: accelerometer, gyroscope and magnetometer). The core uses the accelerometer and the gyroscope.</li>
-</ul>
-<p>On top of the core you add features for alarms, configuration, logging, signal processing and robustness, and you can take on up to two advanced challenges.</p>
+<h2 id="tested">Requirements and tests</h2>
+<p id="good-requirement">Write each requirement so another engineer can test it. State the behaviour, values and units, and what happens at a boundary or when data is invalid. Use the feature access entry to say how to reach or observe it. Give each test a starting state, steps and an expected result. Record what actually happened. Write the steps and expected result so the lecturer can repeat the test on your binary and decide whether the requirement is met. A requirement without stated values, or a test the lecturer cannot repeat from your document, earns no verification marks. See the <a href="resources.html#read-ex1">worked example</a>.</p>
+<p id="calc">The lecturer checks the requirements, test procedures, recorded results and source, and repeats selected tests using your binary. Report partial results and failures as well as successful tests. Detailed partial-credit rules will be issued separately.</p>
 
-<h2 id="job">2. Your job</h2>
-<p>Treat this page as a feature list that a design team has handed to you. Each feature is described in one line. One line is enough to say what the product should do, but it is not enough to build or test the feature.</p>
-<p>Your job has three parts:</p>
-<ol>
-  <li><strong>Write the requirements.</strong> For each feature you choose, you turn the one-line description into requirements that are exact enough to build and to test.</li>
-  <li><strong>Implement the features.</strong> You build firmware that meets your requirements.</li>
-  <li><strong>Test the features.</strong> You test your firmware on the real board against your requirements, record what happened and explain any problems you found.</li>
-</ol>
-<p>Every student builds the same core features. You then choose which standard features and challenges to add.</p>
-<div class="box"><p>You may use AI tools to help write your code. We are not marking you on how much code you write yourself.</p>
-<p>We are marking you on what your system does, how well it works, and how you test it.</p>
-<p>You must decide what each feature should do, write clear requirements, and develop tests to check that your system meets those requirements.</p>
-<p>You must also test your system on the actual hardware, record what happened, and explain any problems you found.</p>
-<p>Your code does not need to be written by hand, but you are responsible for making sure it works. The decisions you make about how your system works, and the results you achieve, are part of the assessment.</p></div>
-
-<h3 id="good-requirement">What a good requirement contains</h3>
-<p>Take the feature "Tilt hysteresis: the tilt alarm clears at a lower angle than the angle that starts it". The one line leaves questions open, and your requirements must answer them:</p>
-<ul>
-  <li><strong>Exact behaviour with numbers.</strong> At what angle does the alarm start, and at what angle does it clear?</li>
-  <li><strong>Behaviour at the boundary.</strong> What happens when the tilt equals the start angle exactly?</li>
-  <li><strong>Behaviour with invalid data.</strong> What happens to the alarm when the accelerometer reading becomes invalid?</li>
-  <li><strong>How the user reaches the feature.</strong> Which screen and which button presses, starting from Home, set the clear angle?</li>
-</ul>
-<p>A requirement is good when another engineer can test it without asking you a question. "Detect tilt" cannot be tested, so it is not a requirement.</p>
-
-<h2 id="assessed">3. What is assessed</h2>
-<p>Your work is checked as a chain of four links, and each link must hold:</p>
-<ol>
-  <li><strong>Requirements.</strong> What does each feature have to do? Exact behaviour, values and units, boundaries, faults, and how the user reaches it.</li>
-  <li><strong>Test procedures.</strong> How could another engineer repeat your test? The starting state, what you do, how you measure it and the result you expect.</li>
-  <li><strong>Results and evidence.</strong> What actually happened? Measurements, timings, observations, failures, uncertainty, and logs, photos or other evidence.</li>
-  <li><strong>Firmware.</strong> Does your binary behave as you report? Does your source build that binary? Can the lecturer repeat your tests?</li>
-</ol>
-<p>The lecturer asks four questions about each feature:</p>
-<ul>
-  <li>Are the requirements complete and exact enough for the feature as it is described here?</li>
-  <li>Do the tests actually check the requirements and expose the important ways it could fail?</li>
-  <li>Do the results and evidence support what you claim?</li>
-  <li>Does the firmware match your requirements and your reported results?</li>
-</ul>
-<p>Your requirements are checked against the feature description in this brief, not only against your own tests. Requirements, tests and code that agree with each other can all be wrong together.</p>
-<p>No marks are given for who wrote the code, for how long it is or for its style. How the system behaves, its timing, its robustness and how well the features work together all count, because you can see them on the board.</p>
-
-<h2 id="marks">4. Marks and submissions</h2>
-<table>
-  <tr><th>Submission</th><th>Marks</th><th>What you hand in</th><th>Deadline</th></tr>
-  <tr><td>First submission</td><td class="num">10</td><td>Your requirements and an early binary</td><td>To be announced</td></tr>
-  <tr><td>Final submission</td><td class="num">30</td><td>Final binary, source code, requirements, tests with results and evidence, and your Feature Access Guide</td><td>To be announced</td></tr>
-</table>
-
-<h3>First submission (10 marks)</h3>
-<p>The first submission shows that your hardware works and commits you to a plan. You get feedback on your requirements before you finish the build.</p>
-<ul>
-  <li><strong>Requirements (about 6 marks, provisional).</strong> You list the features you intend to build, and write the requirements for the core and for each feature you choose, with a short note on your plan. You do not write a test plan yet, but your requirements must still be exact enough to test. This part is marked on how complete and exact your requirements are, not on how many features you list.</li>
-  <li><strong>Early binary (about 4 marks, provisional).</strong> The board starts, reads both sensors and prints their readings and health on the serial port. These are core features C01, C02, C03 and C12.</li>
-</ul>
-<p>Choose your features in <a href="picker.html">the feature picker</a>, then write your requirements in the <a href="workbook.html">project workbook</a>. The workbook produces REQUIREMENTS_AND_TESTS.md. Submit your Markdown file with your early binary on Blackboard.</p>
-<h3 id="early">What the early binary must do</h3>
-<p>You plan the whole core in the first submission, but you build only the first part of it. The early binary must:</p>
-<ul>
-  <li>start both sensors and report the health of each one separately (C01);</li>
-  <li>read temperature and humidity from the AHT20 (C02);</li>
-  <li>read acceleration and angular rate from the ICM-20948 (C03);</li>
-  <li>print the live readings, with units, and the health of each sensor on the USB serial port in a readable layout (C12).</li>
-</ul>
-<p>The alarm causes and faults can stay empty, because the limit checks come later. The screen, the buttons, the menu and serial replay are not needed yet. See <a href="protocol.html#c12">Serial output</a> for what C12 prints.</p>
-
-<h3 id="plan">Your feature list is your plan</h3>
-<p>The features you list in the first submission are the features you plan to build, and your final submission claims features from that list. Do not list a few easy features to avoid scrutiny and then add many more at the end. Listing every feature earns nothing by itself either. You can still change your plan, but every change needs a reason in your final submission:</p>
-<ul>
-  <li><strong>Dropping a feature.</strong> You may drop a feature that did not work out. Say why. A dropped feature earns no marks.</li>
-  <li><strong>Changing requirements.</strong> You may correct or improve your requirements, for example after feedback. Say what changed and why.</li>
-  <li><strong>Adding a feature.</strong> You may add a feature that was not in your plan if you give a good reason. For now the rule is that a feature added without a good reason, or a large number of added features, earns at most half its normal mark.</li>
-</ul>
-
-<h3>Final submission (30 marks)</h3>
-<ul>
-  <li><strong>Binary.</strong> The firmware file that is loaded onto the lecturer's board.</li>
-  <li><strong>Source code and build instructions.</strong> The source, libraries and settings that build the binary you submit.</li>
-  <li><strong>Final requirements.</strong> Your requirements as built, with the features you claim and the changes since the first submission.</li>
-  <li><strong>Tests and results.</strong> For each requirement, a test procedure, the expected result, the actual result and the evidence, with your explanation of anything that failed.</li>
-  <li><strong>Feature Access Guide.</strong> How to reach or observe each feature, starting from Home, with your navigation tests repeated on the final binary.</li>
-  <li><strong>Challenges.</strong> For each challenge you claim, your replay tests and results, your physical tests and your comparison with the baseline.</li>
-</ul>
-
-<h2 id="tested">5. How your work is checked</h2>
-<p>You test the core and the standard features on the real board, with real readings and real button presses. For example, you warm or cool the sensor, tilt the board, unplug a sensor before power-up to check its fault report, or switch the power off to check that settings survive. A good test states what it shows and what it does not show. A phone inclinometer, for example, shows that hysteresis works but cannot prove the exact switching angle to a tenth of a degree.</p>
-<p>For evidence, use what fits the test: serial logs, measurements, photos of the screen, CSV exports or short recordings. No demonstration video is required.</p>
-<p>The lecturer checks your work in three ways:</p>
-<ul>
-  <li>reads your requirements, tests and results against the feature descriptions;</li>
-  <li>reads your source code to check that it can produce the behaviour you report;</li>
-  <li>loads your binary onto identical hardware and repeats a selection of your tests, following your Feature Access Guide.</li>
-</ul>
-<p>Not every test is repeated for every student. When a repeated test does not behave as your results say, your evidence for that feature counts for less.</p>
-<p>The challenges are also tested with serial replay. See <a href="advanced.html">Challenges</a>.</p>
-
-<h2 id="home">6. Home screen and Feature Access Guide</h2>
-<p>Your monitor must have a recognisable Home screen. Home shows the monitoring status, the alarm and fault status, the health of each sensor and a way into the measurements, the settings and your other features (C09). It does not have to show every measurement. You choose the screen layouts and what each button does, with one fixed rule: holding D0 for 2 seconds or longer always returns to Home (C10).</p>
-<p>A good interface is one that works, not one that looks impressive:</p>
-<ul>
-  <li>values have names and units, are readable and are not cut off;</li>
-  <li>alarms and faults stand out and can be told apart;</li>
-  <li>the buttons behave the same way everywhere, every action gives feedback, and no screen is a dead end;</li>
-  <li>there is always a way back to Home, including after an error;</li>
-  <li>the monitor keeps monitoring while the user is in a menu.</li>
-</ul>
-<p>The <strong>Feature Access Guide</strong> is part of your final submission. For each feature the user operates, it gives the route from Home: the button presses, what the screen shows, how to operate the feature, how to get back to Home, and your test of that route with its result. For a feature that works on its own, such as a filter or a watchdog, say how to trigger it or see its effect instead.</p>
-<p>An example route is Home, D0 twice, D2 to select, Tilt settings. Your own route is the one that counts.</p>
-<p>Menus change as you add features, so repeat your navigation tests on the final binary before you submit.</p>
-
-<h2 id="core">7. Core features</h2>
-<p>All 12 core features are compulsory. C11 has been removed, so the numbering skips it.</p>
-<noscript>Enable JavaScript to read the feature tables and challenge descriptions.</noscript><div data-catalog="Core"></div>
-<p>The five default limits are a minimum temperature of 10 &deg;C, a maximum temperature of 28 &deg;C, a maximum relative humidity of 70%, an acceleration magnitude of 2.5 g (gravity included) and a tilt of 30&deg;. An alarm starts only when a measurement goes past its limit. A measurement equal to the limit does not start an alarm.</p>
-<p>C13 includes checking every value the user enters, so that the menu cannot set an impossible limit. A separate validation feature (P03) has been folded into C13.</p>
-
-<h2 id="standard">8. Standard features</h2>
-<p>Standard features add to the core monitor. They are grouped into four categories, and each category is listed from easiest to hardest. The "Needs" column shows what you must build first.</p>
-<ul>
-  <li>Each standard feature is worth 1 mark: half for working correctly and half for its requirements, tests, results and evidence.</li>
-  <li>Choose at most 3 features from each category, and so at most 12 in all. Fewer is allowed.</li>
-  <li>A prerequisite counts as one of the 3. L01 is needed by most logging features, so a student who takes L01 has room for two more in Logging.</li>
-  <li>Marks do not move between categories, so full marks need 3 working features in every category.</li>
-</ul>
-
-<h3>Alarms</h3>
-<div data-catalog="Alarms"></div>
-
-<h3>Configuration</h3>
-<div data-catalog="Configuration"></div>
-
-<h3>Logging</h3>
-<div data-catalog="Logging"></div>
-
-<h3>Signal processing and robustness</h3>
-<div data-catalog="Signal processing and robustness"></div>
-
-<p>When you choose features that act on the same alarm, such as persistence, hysteresis and latching, test them together as well as on their own.</p>
-
-<h2 id="advanced">9. Challenges</h2>
-<p>There are six challenges, X1 to X6, worth up to 5 marks each. Choose at most two. Every challenge needs the common serial replay, tests on the real sensor and a comparison with a simpler baseline. The descriptions and proposed minimums are on the <a href="advanced.html">Challenges page</a>.</p>
-
-<h2 id="calc">10. How your mark is calculated</h2>
-<p>The split of the final 30 marks is provisional. It may change after the reference build.</p>
-<table>
-  <tr><th>Part</th><th>Marks</th><th>Running total</th></tr>
-  <tr><td>First submission: requirements and early binary</td><td class="num">10</td><td class="num">10 (25%)</td></tr>
-  <tr><td>Final: core, all 12 features</td><td class="num">8</td><td class="num">18 (45%)</td></tr>
-  <tr><td>Final: standard features, 1 mark each, at most 3 per category</td><td class="num">up to 12</td><td class="num">30 (75%)</td></tr>
-  <tr><td>Final: challenges, best two</td><td class="num">up to 10 (5 each)</td><td class="num">40 (100%)</td></tr>
-</table>
-<p>The running totals are the most each step can reach. A first submission and a core that are both done well reach 45%. A weaker first submission with a working core does not reach the pass line on its own, so standard features matter.</p>
-<ul>
-  <li><strong>Each feature is marked half on how well it works and half on verification:</strong> your requirements, your tests and your results and evidence for it.</li>
-  <li><strong>Documents cannot carry a feature that does not work.</strong> A missing or broken feature does not earn the verification half for good paperwork. The exact rule for partial credit and failed features will be published.</li>
-  <li><strong>Each standard feature is worth 1 mark,</strong> with at most 3 marks from each of the four categories.</li>
-  <li><strong>Only your best two challenges count.</strong> A third earns nothing, so put your effort into two.</li>
-  <li><strong>There is no separate mark for appearance.</strong> How usable your screens and buttons are counts inside the features that use them, such as C09, C10 and C13.</li>
-</ul>
-
-<div class="box"><strong>Decide what to claim from your own test results.</strong> Claim a feature when your own tests show that it works, and report honestly what does not.</div>
-
-<h2 id="rules">11. Rules</h2>
-<ul>
-  <li>Do not modify the boards or add any wiring. Your firmware must run on unmodified hardware identical to yours.</li>
-  <li>Buttons D0, D1 and D2 are the only physical inputs.</li>
-  <li>The monitor runs on USB power. No battery is used.</li>
-  <li>You may use AI tools. You are responsible for everything you submit, including code and documents that an AI tool wrote.</li>
-  <li>You submit on Blackboard.</li>
-</ul>
-
-<h2 id="later">12. What comes later</h2>
-<ul>
-  <li>The deadlines for both submissions</li>
-  <li>The marks for each core feature</li>
-  <li>The rule for partial credit and failed features</li>
-  <li>The serial replay format, a PC program to send replay data, and example data sets for the challenges</li>
-  <li>Final values for the challenge minimums, and whether R01 stays in the list</li>
-</ul>
+<h2 id="rules">Hardware and rules</h2>
+<p id="build">Use the Adafruit ESP32-S3 Reverse TFT Feather, AHT20 and ICM-20948 on USB power. Use the built-in D0, D1 and D2 buttons for physical input. Leave the boards and wiring unmodified. You may use AI tools and you are responsible for the firmware and evidence you submit.</p>
+<noscript>Enable JavaScript to read the standard and advanced feature catalogues.</noscript>
 
 </main><footer>SETU · Fourth-year Embedded Systems <a href="index.html">Project roadmap</a></footer><script src="page.js"></script><script src="features.js"></script><script src="catalog.js"></script></body></html>

@@ -6,7 +6,7 @@
 <h1>Challenges</h1>
 <p class="sub">Embedded Systems. Advanced challenges X1 to X6. Up to 5 marks each, at most two.</p>
 
-<p class="draft"><strong>Draft, 17 November 2026.</strong> The proposed minimum for each challenge has not yet been checked on the lab hardware, so the numbers may change. The serial replay format will be published before you start the challenges.</p>
+<p>The serial replay format will be published before you start the challenges.</p>
 
 <nav aria-label="Challenges contents">
 <ol>
@@ -19,23 +19,23 @@
 
 <h2 id="what">1. What a challenge asks</h2>
 <p>The challenges are for students who want the top of the mark range. Each one is a real engineering problem. An AI tool can write code for any of them, but whether that code works depends on timing, memory and signal behaviour on the board, and you only find that out by measuring it.</p>
-<p>The challenges are not equally hard. Pick the two that suit you, and read the proposed minimum before you choose. A third challenge earns nothing.</p>
+<p>The challenges are not equally hard. Choose up to two. Read what each challenge must do and decide what performance you can measure on your board.</p>
 
 <h2 id="each">2. What you do for each challenge</h2>
 <ol>
-  <li><strong>Write measurable requirements,</strong> with units, boundaries and the limits of your method.</li>
+  <li><strong>Write measurable requirements,</strong> with units and boundaries. Choose and justify numerical performance objectives appropriate to the application.</li>
   <li><strong>Run the algorithm on the ESP32-S3.</strong> A result worked out on a PC and shown as device output does not count.</li>
   <li><strong>Build the common serial replay,</strong> so that replayed samples go through the same code as real IMU samples. See <a href="protocol.html#replay">Serial replay</a>. One replay interface serves both of your challenges.</li>
-  <li><strong>Run replay tests</strong> with stated expected results, and keep the inputs, the outputs and your analysis.</li>
+  <li><strong>Run replay tests</strong> with stated expected results. Name the supplied replay case, or describe how to recreate your test input. Summarise the actual output in the workbook.</li>
   <li><strong>Test on the real sensor.</strong> X1 and X2 also need real timing and buffer measurements.</li>
   <li><strong>Compare with the baseline</strong> given in the description, using the same input. A deliberately weak baseline makes the comparison worthless.</li>
-  <li><strong>Report your results,</strong> with uncertainty, failures and limits, and keep the data.</li>
-  <li><strong>Add the challenge to your Feature Access Guide,</strong> and show that the rest of the monitor still works.</li>
+  <li><strong>Report your results in the workbook.</strong> For each test, give the steps and expected result so the lecturer can repeat it. Record what you observed, including relevant measurements and any limitations.</li>
+  <li><strong>Explain how to access or observe the challenge in its workbook entry,</strong> and show that the rest of the monitor still works.</li>
 </ol>
 
 <h2 id="marks">3. How a challenge is marked</h2>
-<p>Each challenge is worth up to 5 marks, and only two count. Like every feature, a challenge is marked half on how well it works and half on your requirements, tests and evidence for it. Documents cannot carry a challenge that does not work. The exact rule for partial credit will be published.</p>
-<p>The lecturer repeats tests with replay data that you have not seen, and checks selected behaviour on the board.</p>
+<p>Each challenge is worth up to 5 marks, and only two count. Each challenge is marked half on operation and half on verification through its requirements, tests and recorded results. Meeting a target you set yourself does not automatically earn full marks. We assess the suitability of the objective, achieved performance, and how well the tests let the lecturer reproduce and judge your results. The exact rule for partial credit will be published.</p>
+<p>The lecturer checks selected behaviour on the board and may repeat tests with separate replay data.</p>
 
 <h2 id="list">4. The six challenges</h2>
 <noscript>Enable JavaScript to read the challenge descriptions.</noscript>

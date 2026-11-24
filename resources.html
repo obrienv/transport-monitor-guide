@@ -16,38 +16,27 @@
 <main id="main">
 <h1>Resources and changes</h1>
 <h2 id="example">Requirements and test files</h2>
-<p>Choose your features in the <a href="picker.html">feature picker</a> and write the document in the <a href="workbook.html">project workbook</a>. The workbook and the template below produce the same Markdown layout, so you can also download the template and write in a text editor. EX1 uses an invented humidity feature to show how requirements connect to physical tests, results and an access route. The first submission needs only the requirements.</p>
+<p>Use the <a href="workbook.html?part=1">Part 1 workbook</a> first. In Part 2 carry the work forward in the <a href="workbook.html?part=2">Part 2 workbook</a> and choose additions in the <a href="picker.html">picker</a>. The workbook and the template below produce the same Markdown layout, so you can also download the template and write in a text editor. EX1 uses an invented humidity feature to show how requirements connect to physical tests, results and an access route. Both parts include verification records.</p>
 <div class="downloads">
 <article>
 <h3>Requirements and tests</h3>
 <p>Keep the headings. Replace the worked EX1 section with a section for each feature.</p><a download href="downloads/REQUIREMENTS_AND_TESTS.md">Download Markdown template</a>
 </article>
 </div>
+<h2>Continue earlier work</h2><p>Use Recover older browser draft on the same computer, or Import previous work with an earlier Markdown file. To move your Part 1 draft to another computer, download Markdown there and import it in the Part 2 workbook. Save a backup of each part before leaving a shared PC.</p>
 <h3 id="read-ex1">Read the worked EX1 example</h3>
-<p>EX1 shows the requirements, the tests linked to them, a test procedure and the access route for one feature, as they would look in a final submission. Test EX1-T3 also shows a test stating what it does not prove. The text below comes from the Markdown template.</p>
+<p>EX1 shows the requirements, the tests linked to them, a test procedure and the access route for one feature, as they would look in either workbook. The text below comes from the Markdown template.</p>
 <pre id="ex1-text">Download the Markdown template above to read the example.</pre>
 <h2 id="pc-test">Serial logs and the replay program</h2>
-<p>For the core and the standard features you need only a serial monitor, for example the Serial Monitor in the Arduino IDE. Save its output as a log file for your evidence, and name the test it belongs to.</p>
+<p>For the core and the standard features you need only a serial monitor, for example the Serial Monitor in the Arduino IDE. In the workbook, state which serial output to observe during the test, what you expect to see and what you actually observed.</p>
 <p>The PC program that sends replay data for the challenges, the replay format and example data sets will be added here before you start the challenges.</p>
-<h2>What changed</h2><article class="change"><time datetime="2026-11-18">18 November 2026</time><h3>Standard features and feature wording</h3>
-<p>Each standard feature is now worth 1 mark, with at most 3 features from each of the four categories, prerequisites included. The <a href="picker.html">picker</a> stops you choosing a fourth in a category.</p>
-<p>R02 (watchdog) has been removed. P06 no longer needs P01, and challenges X2 and X5 no longer need M04 and M02. Holding D0 for 2 seconds or longer must return to Home (C10). Many feature descriptions were made more exact, so read the <a href="brief.html#standard">feature tables</a> again before you write your requirements.</p></article><article class="change"><time datetime="2026-11-17">17 November 2026, evening</time><h3>Testing, submissions and marks</h3>
-<p>The core and the standard features are now tested on the real board. The serial test protocol is gone, and so is core feature C11. C12 now asks for readable live serial output, described on the <a href="protocol.html">Serial output</a> page. Serial replay is needed only for the challenges, and its format will be published later.</p>
-<p>The first submission asks for requirements and an early binary, with no test plan. The workbook shows the Tests, Results and Access tabs once you set Submission to Final.</p>
-<p>The final 30 marks are now split 8 for the core, up to 12 for standard features and up to 10 for two challenges (provisional). Each feature is marked half on how well it works and half on your requirements, tests and evidence. Your monitor needs a Home screen, and the final submission includes a Feature Access Guide. P03 is now part of C13. The challenges have their own <a href="advanced.html">page</a>.</p></article><article class="change"><time datetime="2026-11-17">17 November 2026</time><h3>Workbook, picker and roadmap</h3><p>The workbook checks your project details and features before you download the file for Blackboard. The backup button is now called Download backup to keep, because backups are not submitted. The claim, the Results tab and the changes note appear when you set Submission to Final in Project details.</p>
-<p>On a shared lab PC, choose Finish on this PC in the workbook before you leave. It downloads a backup and then removes your workbook, feature choices and roadmap ticks from that browser.</p>
-<p>The picker shows the standard feature share as to be announced and no longer shows a plan total. You can now <a href="#read-ex1">read the worked EX1 example</a> on this page.</p></article>
-<article class="change"><time datetime="2026-11-16">16 November 2026</time><h3>Project workbook</h3><p>Write and review your plan in the <a href="workbook.html">workbook</a>. Download a dated copy to keep your work or continue on another computer.</p></article>
-<article class="change"><time datetime="2026-11-16">16 November 2026</time>
-<h3>Project guide and feature planning</h3>
-<p>Use the roadmap and picker for the first submission. The worked EX1 files now agree on the humidity boundary. With a maximum of 70%, a clear setting of 69% is accepted and 70% is rejected.</p>
-<p>Deadlines, standard feature weights and the challenge replay format will be announced here.</p>
-</article>
+<h2>Submission checklist</h2>
+<p>Submit source code, one full merged firmware image and the workbook Markdown for each part. Record the test steps and results in the workbook. Use the <a href="brief.html#marks">submission instructions</a> to export and check your merged image.</p>
 </main>
 <script>
 // Shows the EX1 section of the template, so the example has one source. Opened from a file, the fallback text stays.
 fetch("downloads/REQUIREMENTS_AND_TESTS.md").then(r => r.ok ? r.text() : Promise.reject()).then(text => {
-  const start = text.indexOf("### EX1"), end = text.indexOf("## Known limitations");
+  const start = text.indexOf("### EX1"), end = text.length;
   if (start < 0 || end < start) return;
   const section = text.slice(start, end).replace(/\r/g, "").replace(/<!--[\s\S]*?-->\n*/g, "").replace(/\n{3,}/g, "\n\n").trim();
   document.getElementById("ex1-text").textContent = section;

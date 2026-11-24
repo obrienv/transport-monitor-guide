@@ -5,28 +5,49 @@ function upgrade(saved) {
   saved.project={...projectSections,...saved.project};
   delete saved.project["Extra state fields and event kinds"];
   if(old && old.trim()) saved.extra=[saved.extra,"Extra state fields and event kinds (old serial protocol)\n"+old.trim()].filter(Boolean).join("\n\n");
-  for(const f of saved.items) {f.access ??= "";f.manual ??= "";f.changes ??= "";}
-  return saved;
+  for(const f of saved.items) {
+    f.access ??= "";f.manual ??= "";
+    if(f.changes?.trim()) f.notes=[f.notes,f.changes].filter(Boolean).join("\n\n");
+    delete f.changes;
+  }
+  return preserveEarlierDetails(saved);
 }
-const storageKey = "setu.tm.2026.workbook.v1";
+const legacyKey = "setu.tm.2026.workbook.v1";
 const params = new URLSearchParams(location.search);
+const part = params.get("part") === "2" || (!params.has("part") && params.has("features")) ? 2 : 1;
+const storageKey = "setu.tm.2026.workbook.part" + part;
+const inPart = f => part === 1 ? partOneIDs.has(f.id) : f.group === "Core" || plannedIDs.has(f.id);
 const plannedIDs = new Set((params.get("features") ?? loadList("plan").join(",")).split(","));
 function includeDependencies(id) {
   const f=features.find(x=>x.id===id);
   if(f?.needs) {plannedIDs.add(f.needs);includeDependencies(f.needs);}
 }
 [...plannedIDs].forEach(includeDependencies);
-const chosen=features.filter(f=>f.group==="Core" || plannedIDs.has(f.id));
+const chosen=features.filter(inPart);
+function scopeTitle(f) {
+  return part===1 ? partOneTitles[f.id] || f.title : f.title;
+}
 function pickedRecord(f) {
-  const record=featureRecord(f.id,f.label,f.title);
+  const record=featureRecord(f.id,f.label,scopeTitle(f));
   if(f.settingsSources) {
     const settings=params.has("settings") ? params.get("settings").split(",") : loadList("menu-settings");
     if(settings.filter(Boolean).length) record.notes="Planned menu settings from "+settings.join(", ")+".";
   }
   return record;
 }
-let book=emptyBook();
-book.items=chosen.map(pickedRecord);
+function setPart(book) {
+  const details=book.project["Student details"];
+  book.project["Student details"]=/^- Submission:.*$/m.test(details)
+    ? details.replace(/^- Submission:.*$/m,"- Submission: Part "+part)
+    : details+"\n- Submission: Part "+part;
+  return book;
+}
+function newBook() {
+  const draft=setPart(emptyBook());
+  draft.items=chosen.map(pickedRecord);
+  return draft;
+}
+let book=newBook();
 let announcedWarning="", lastStored=null, downloaded="", savedAt="", changed=true, conflict=false, warning="", pending=false;
 let active=book.items[0].id, tab="Requirements", view="feature";
 function node(tag,text,cls) {
@@ -38,7 +59,7 @@ function node(tag,text,cls) {
 function button(label,fn,cls) {
   const el=node("button",label,cls);el.type="button";el.onclick=fn;return el;
 }
-// "- Label: value" lines, as used in Student details and Build and setup.
+// "- Label: value" lines in Student details.
 function listLines(text) {
   const lines=text.split("\n").filter(line=>line.trim());
   const pairs=lines.map(line=>line.match(/^- ([^:]+):[ \t]?(.*)$/));
@@ -83,6 +104,13 @@ try {
     const saved=JSON.parse(lastStored);
     if(!saved.book?.items?.length || !saved.book.project) throw Error();
     const upgraded=upgrade(saved.book);
+    for (const entry of upgraded.items) {
+      const definition=features.find(f=>f.id===entry.id);
+      if(definition) {
+        entry.label=definition.label;
+        entry.title=scopeTitle(definition);
+      }
+    }
     markdown(upgraded);
     book=upgraded;active=book.items[0].id;downloaded=saved.downloaded||"";changed=saved.changed!==false;savedAt=saved.savedAt||"";
   }
@@ -95,31 +123,36 @@ function stamp(now) {
   const two=n=>String(n).padStart(2,"0");
   return now.getFullYear()+"-"+two(now.getMonth()+1)+"-"+two(now.getDate())+"_"+two(now.getHours())+two(now.getMinutes());
 }
-function backup(submission=false) {
-  const url=URL.createObjectURL(new Blob([markdown(book)],{type:"text/markdown;charset=utf-8"}));
-  const a=node("a"); const now=new Date();
-  const number=detail("student number").replace(/[^A-Za-z0-9]/g,"");
-  a.download=submission===true ? "REQUIREMENTS_AND_TESTS.md" : "REQUIREMENTS_AND_TESTS_"+(number?number+"_":"")+stamp(now)+".md";
-  a.href=url;document.body.append(a);a.click();a.remove();
+function downloadBook(draft, filename) {
+  const url=URL.createObjectURL(new Blob([markdown(draft)],{type:"text/markdown;charset=utf-8"}));
+  const link=node("a");
+  link.download=filename;link.href=url;document.body.append(link);link.click();link.remove();
   setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+const submissionName="PART_"+part+"_REQUIREMENTS_AND_TESTS.md";
+function backup(submission=false) {
+  const now=new Date();
+  const number=detail("student number").replace(/[^A-Za-z0-9]/g,"");
+  downloadBook(book,submission===true ? submissionName : submissionName.replace(".md","_"+(number?number+"_":"")+stamp(now)+".md"));
   downloaded=now.toISOString();changed=false;persist(false);
 }
 $("#backup").onclick=backup;
 function selectedFeature() {return book.items.find(f=>f.id===active) || book.items[0];}
 function authored(text) {return !!text.trim() && !/^<[^>]*>$/.test(text.trim());}
 function linked(t,id) {return t.covers.split(/[\s,]+/).includes(id);}
-function isFinal() {return detail("submission").toLowerCase()==="final";}
 function issues(f) {
   const gaps=[];
   if(!f.requirements.length) gaps.push("Write a requirement.");
   for(const r of f.requirements) if(!authored(r.text)) gaps.push("Write the behaviour for "+r.id+".");
-  if(!isFinal()) return gaps;
   for(const r of f.requirements) if(!f.tests.some(t=>linked(t,r.id))) gaps.push("Link a test to "+r.id+".");
-  if(!f.access.trim()) gaps.push("Say how to reach or observe "+f.label+" from Home.");
+  if(!f.access.trim()) gaps.push("Say how to reach or observe "+f.label+" on the device.");
   for(const t of f.tests) {
     if(!f.requirements.some(r=>linked(t,r.id))) gaps.push("Choose a requirement for "+t.id+".");
     if(!t.expected.trim()) gaps.push("Give an expected result for "+t.id+".");
-    if(!t.how.trim() || !(t.setup.trim() || t.actions.trim())) gaps.push("Describe how to run "+t.id+".");
+    if(!t.setup.trim()) gaps.push("Give a starting state for "+t.id+".");
+    if(!t.how.trim() || !t.actions.trim()) gaps.push("Describe how to run "+t.id+".");
+    if(t.status==="Not yet run" || !t.status) gaps.push("Record the outcome or explain why "+t.id+" could not be run.");
+    if(!t.observed.trim()) gaps.push("Record the observation or limitation for "+t.id+".");
   }
   return gaps;
 }
@@ -134,17 +167,23 @@ function standing(f) {
   if(fail) return [fail+" failed","fail"];
   if(!f.requirements.length && !f.tests.length) return ["Not started",""];
   if(issues(f).length) return ["Incomplete","part"];
-  if(!isFinal()) return ["Requirements written","ready"];
   if(pass===f.tests.length) return ["All passed","pass"];
-  return ["Ready to test","ready"];
+  return [f.tests.some(t=>t.status==="Unable to test")?"Test limitation recorded":"Ready to test","ready"];
 }
+$("#scope-link").href=part===1 ? "brief.html#early" : "brief.html#core";
+$("#scope-link").textContent=part===1 ? "Read the nine Part 1 features" : "Read the four Part 2A additions and their workbook IDs";
+$("#scope-note").textContent=part===1 ? "Record requirements, tests and results for your basic monitor. Record how to observe each feature." : "Carry forward your Part 1 work, then update the requirements and record results for the final binary. Record gyro work under C03 and C12, tilt under C06 and C07, Home and navigation under C09 and C10, and editable limits under C13.";
 const panel=$("#editor");
 function showList() {
   const list=$("#feature-list"), select=$("#feature-select");
   list.replaceChildren();select.replaceChildren();
   // Core features first, then the student's own choices, each under a heading with its count.
   const isCore=f=>features.find(x=>x.id===f.id)?.group==="Core";
-  const groups=[["Core",book.items.filter(isCore)],["Planned",book.items.filter(f=>!isCore(f))]].filter(([,items])=>items.length);
+  const groups=[
+    [part===1 ? "Part 1 basic monitor" : "Part 1 features to retain and retest",book.items.filter(f=>partOneIDs.has(f.id))],
+    ["Part 2A additional feature records",book.items.filter(f=>isCore(f) && !partOneIDs.has(f.id))],
+    ["Part 2 optional features",book.items.filter(f=>!isCore(f))]
+  ].filter(([,items])=>items.length);
   for(const [name,items] of groups) {
     list.append(node("p",name+" ("+items.length+")","wb-group"));
     const optgroup=document.createElement("optgroup");optgroup.label=name+" ("+items.length+")";select.append(optgroup);
@@ -182,7 +221,7 @@ function fillCheck(box,f) {
   if(box.dataset.gaps===key && box.childElementCount) return;
   box.dataset.gaps=key;
   box.replaceChildren();box.classList.toggle("done",!gaps.length);
-  if(!gaps.length) {box.append(node("b",isFinal()?"Requirements, linked tests and the access route are present.":"Requirements are present."),node("span",isFinal()?"Check their wording and expected results.":"Check that another engineer could test each one."));return;}
+  if(!gaps.length) {box.append(node("b","Requirements, linked tests and the access route are present."),node("span","Check their wording and expected results."));return;}
   box.append(node("b","Still to do for "+f.label));
   const ul=node("ul");for(const msg of gaps.slice(0,6)) ul.append(node("li",msg));
   if(gaps.length>6) ul.append(node("li","And "+(gaps.length-6)+" more."));
@@ -195,7 +234,7 @@ function field(parent,label,obj,key,options=null,hint="") {
   input.setAttribute("aria-label",label);
   if(options) for(const value of [...new Set([...(obj[key]?[obj[key]]:[]),...options])]) input.add(new Option(value||"Not decided",value));
   input.value=obj[key]||"";
-  if(!options) input.rows=["manual","access","notes","changes"].includes(key)||obj===book.project?4:2;
+  if(!options) input.rows=["manual","access","notes"].includes(key)||obj===book.project?4:2;
   if(hint) {const small=node("small",hint);small.id="hint-"+(++hintCount);input.setAttribute("aria-describedby",small.id);wrap.append(small);}
   input.addEventListener(options?"change":"input",()=>{obj[key]=input.value;persist();});
   wrap.append(input);parent.append(wrap);return input;
@@ -227,7 +266,7 @@ function example() {
     "EX1-R1: The humidity alarm HUMID_HIGH starts when relative humidity is greater than humidity_max_pct.",
     "EX1-R2: Once HUMID_HIGH is active, it clears only when relative humidity is less than or equal to humidity_clear_pct.",
     "EX1-R3: humidity_clear_pct has a default of 65%, a step of 1%, and must be at least 1 percentage point below humidity_max_pct. The menu refuses a value that breaks this rule, shows why, and keeps the old value.",
-    "EX1-R4: If the humidity reading becomes invalid while HUMID_HIGH is active, HUMID_HIGH is no longer shown as an alarm cause and the humidity fault is reported. When a valid reading returns, the alarm starts again only if the reading is greater than humidity_max_pct.",
+    "EX1-R4: If humidity is unavailable at startup, report the humidity sensor fault and mark the humidity reading unavailable. Keep the humidity alarm inactive until a valid reading permits evaluation.",
     "EX1-R5: The user sets humidity_clear_pct from Home under Settings > Limits > Humidity clear."
   ]) ul.append(node("li",line));
   const more=node("p");const link=node("a","Read the full EX1 example with its tests");link.href="resources.html#read-ex1";more.append(link,".");
@@ -236,28 +275,25 @@ function example() {
 function featureEditor(f) {
   panel.append(node("p",f.label,"feature-code"),node("h2",f.title));
   const meta=node("div",undefined,"wb-meta");
-  field(meta,"Feature status",f,"status",["Planned","Implemented","Partly implemented","Dropped"]).addEventListener("change",showList);
-  // The claim, the Results tab and the changes note belong to the final submission.
-  // They appear once Project details > Submission is set to Final; their saved values are kept either way.
-  const final=isFinal();
+  field(meta,"Feature status",f,"status",["Planned","Implemented","Partly implemented",...(features.some(item=>item.id===f.id && item.group==="Core")?[]:["Dropped"])]).addEventListener("change",showList);
+  const final=part===2;
   if(final) {
     field(meta,"Claim this feature for final marking?",f,"claimed",["","Yes","No"]);
     meta.append(node("small","Claim only features your own tests show working."));
   }
   panel.append(meta);
-  if(!final && ["Tests","Results","Access"].includes(tab)) tab="Requirements";
   const tabs=node("div",undefined,"wb-tabs");
-  for(const name of final ? ["Requirements","Tests","Results","Access","Notes"] : ["Requirements","Notes"]) {
+  for(const name of ["Requirements","Tests","Results","Access","Notes"]) {
     const b=button(name,()=>{tab=name;render("tab");});b.setAttribute("aria-pressed",String(tab===name));tabs.append(b);
   }
   panel.append(tabs);
   if(tab==="Requirements") {
-    panel.append(node("p","What must the monitor do? Give the values, units and boundaries. Consider invalid data and how the user reaches the feature from Home. Explain any points that do not apply. Write each requirement so that another engineer could test it."));
-    if(f.id.startsWith("X")) panel.append(node("p","Describe your method, the baseline you compare against, your measurable target and what your replay and physical tests will show."));
+    panel.append(node("p","What must the monitor do? Give the values, units and boundaries. Include behaviour on invalid data where relevant. Record the route or observation instructions in Access. Write each requirement so that another engineer could test it."));
+    if(f.id.startsWith("X")) panel.append(node("p","Describe your method, the baseline you compare against, your justified performance objectives and what your replay and physical tests will show."));
     panel.append(example());
     for(const r of f.requirements) {
       const box=entry(r.id);field(box,"Required behaviour",r,"text");
-      if(final) {
+      {
         box.append(node("small","Linked tests: "+(f.tests.filter(t=>linked(t,r.id)).map(t=>t.id).join(", ")||"None yet")));
         box.append(node("br"),button("Add a test for "+r.id,()=>{tab="Tests";addRecord(f,"test",r.id);},"quiet"));
       }
@@ -278,25 +314,25 @@ function featureEditor(f) {
         };
         label.append(cb," "+r.id+" "+r.text.slice(0,80));group.append(label);
       }
-      box.append(group);field(box,"Test method",t,"how",null,f.id.startsWith("X")?"For example Replay with your data file name, or Physical with how you measure.":"For example Physical: tilt with a phone inclinometer, Buttons and screen, or Serial log.");
-      field(box,"Starting state",t,"setup");field(box,"Actions or inputs",t,"actions");
+      box.append(group);field(box,"Test method",t,"how",null,f.id.startsWith("X")?"For example serial replay with the supplied replay case identified, or a physical test with a stated measurement method.":"For example tilt the board and measure its angle with a phone inclinometer, or observe a named value in the serial monitor.");
+      field(box,"Starting state",t,"setup");field(box,"Actions or inputs",t,"actions",null,"Give the steps another person needs to repeat this test.");
       field(box,"Expected result",t,"expected");box.append(button("Remove test",()=>removeEntry(f,f.tests,t),"quiet"));
     }
     panel.append(button("Add test",()=>addRecord(f,"test"),"primary"));
-    field(panel,"Test procedures",f,"manual",null,"For each test, give numbered steps another engineer can follow on identical hardware without you there.");
+    field(panel,"Test procedures",f,"manual",null,"Use this optional space if a test needs a longer procedure. Refer to its test ID.");
   } else if(tab==="Notes") {
     field(panel,"Implementation notes",f,"notes",null,"Record design decisions, errors, fixes or questions to revisit.");
-    if(final) field(panel,"Changes since first submission",f,"changes",null,"Describe what changed and why. Keep your first submission as a dated backup.");
-    else panel.append(node("p","Tests, results, the access route, the claim and the changes note belong to the final submission. They appear when you set Submission to Final in Project details.","wb-hint"));
+
   } else if(tab==="Access") {
-    panel.append(node("p","This is your Feature Access Guide entry for this feature. Start from Home."));
-    field(panel,"Access from Home",f,"access",null,"Give the button presses from Home, what the screen shows, how to operate the feature and how to return to Home. For a feature that works on its own, say how to trigger it or see its effect. Then give the navigation test you ran on the final binary and its result.");
+    panel.append(node("p",final ? "Give the route from Home for a feature you operate. For an automatic feature, explain how to trigger or observe it." : "Explain how to observe this feature on your Part 1 monitor."));
+    field(panel,"How to access or observe the feature",f,"access",null,"Explain where to see the behaviour, how to trigger it and what appears on the TFT or serial output. Include button presses if the feature uses them.");
   } else {
     if(!f.tests.length) panel.append(node("p","Add a test in the Tests tab to record its result."));
     for(const t of f.tests) {
       const box=entry(t.id);box.append(node("p","Expected: "+(t.expected||"Enter an expected result in Tests.")));
-      field(box,"Test result",t,"status",["Not yet run","Pass","Fail"]);
-      field(box,"Actual observation or error",t,"observed");field(box,"Evidence (log file, photo, measurement)",t,"log");
+      field(box,"Test result",t,"status",["Not yet run","Pass","Fail","Unable to test"]);
+      field(box,"Actual observation or error",t,"observed");
+      if(t.log.trim()) field(box,"Supporting data from an earlier draft",t,"log");
     }
   }
   const check=node("div",undefined,"wb-check");check.setAttribute("role","status");fillCheck(check,f);
@@ -312,44 +348,13 @@ function lineEditor(key,hint) {
   const write=()=>{book.project[key]=pairs.map(([label,value])=>"- "+label+": "+value.replace(/\n/g," ")).join("\n");persist();};
   pairs.forEach((pair,i)=>{
     const id="kv-"+key.replace(/\W/g,"")+"-"+i, label=node("label",pair[0]);label.htmlFor=id;
-    const choices=pair[0]==="Submission" && ["","First","Final"].includes(pair[1]) ? ["First","Final"] : null;
-    const input=node(choices?"select":"input");input.id=id;
-    if(choices) for(const value of choices) input.add(new Option(value,value));
+    const input=node("input");input.id=id;
     input.value=pair[1];
-    input.addEventListener(choices?"change":"input",()=>{pair[1]=input.value;write();});
+    input.readOnly=pair[0]==="Submission";
+    input.addEventListener("input",()=>{pair[1]=input.value;write();});
     grid.append(label,input);
   });
   panel.append(grid);
-}
-function buttonMap() {
-  const key="Button map";
-  panel.append(node("h3",key,"section"),node("p","Give the button press for each action your firmware supports, such as next screen, open menu, confirm or cancel.","wb-hint"));
-  const lines=book.project[key].split("\n").filter(line=>line.trim());
-  const parsed=lines.map(cells);
-  if(!lines.length || parsed.some(v=>v.length!==2)) {field(panel,key,book.project,key);return;}
-  const rows=parsed.filter(v=>!(v[0]==="Action" && v[1]==="Button press") && !/^-+$/.test(v[0])).filter(v=>v[0]||v[1]);
-  if(!rows.length) rows.push(["",""]);
-  const write=()=>{book.project[key]=table(["Action","Button press"],rows.length?rows:[["",""]]);persist();};
-  const grid=node("table",undefined,"wb-rows");
-  const head=grid.createTHead().insertRow();
-  for(const title of ["Action","Button press",""]) {const th=node("th",title);th.scope="col";head.append(th);}
-  const body=grid.createTBody();
-  const draw=()=>{
-    body.replaceChildren();
-    rows.forEach((pair,i)=>{
-      const tr=body.insertRow();
-      [0,1].forEach(col=>{
-        const input=node("input");input.value=pair[col];
-        input.setAttribute("aria-label",(col?"Button press":"Action")+" "+(i+1));
-        input.placeholder=col?"for example short press D2":"for example next screen";
-        input.oninput=()=>{pair[col]=input.value;write();};
-        tr.insertCell().append(input);
-      });
-      tr.insertCell().append(button("Remove",()=>{rows.splice(i,1);write();draw();},"quiet"));
-    });
-  };
-  draw();
-  panel.append(grid,button("Add action",()=>{rows.push(["",""]);draw();body.lastElementChild.querySelector("input").focus();}));
 }
 function reviewTable() {
   const grid=node("table",undefined,"review");
@@ -363,7 +368,7 @@ function reviewTable() {
     tr.insertCell().append(button(f.label+" · "+f.title,()=>{active=f.id;view="feature";tab="Requirements";render("heading");}));
     tr.insertCell().append(node("span",word,"badge "+cls));
     for(const value of [f.requirements.length,f.tests.length,counts.pass,counts.fail]) tr.insertCell().textContent=value;
-    tr.insertCell().textContent=f.status==="Dropped" ? "Give the reason under Notes, in Changes since first submission." : (counts.fail ? "Fix the failure, run the test again and record the new result." : gaps[0] || (counts.open ? "Run the tests and record the results." : "Nothing outstanding."));
+    tr.insertCell().textContent=f.status==="Dropped" ? "This feature is outside your current selection." : (counts.fail ? "Keep the observed failure. If you fix it, rerun the test and record the new result." : gaps[0] || (counts.open ? "Run the tests and record the results." : "Nothing outstanding."));
   }
   return [grid,totals];
 }
@@ -389,18 +394,11 @@ function render(focusTarget) {
   if(view==="project") {
     panel.append(node("h2","Project details"),node("p","Update the details used on your board. These sections appear in your Markdown document."));
     lineEditor("Student details","The build ID must match the build ID your firmware prints on the serial port at start-up.");
-    panel.append(node("h3","Plan","section"));
-    field(panel,"Plan",book.project,"Plan",null,"In a few sentences, say why you chose these features and the order you will build them in.");
-    lineEditor("Build and setup");
-    panel.append(node("h3","Home screen","section"));
-    field(panel,"Home screen",book.project,"Home screen",null,"What Home shows, and how the user gets from Home to the measurements, the settings and your other features.");
-    buttonMap();
-    panel.append(node("h3","Serial output","section"));
-    field(panel,"Serial output",book.project,"Serial output",null,"Describe the layout of your live serial output (C12), its update rate, and an example line.");
-    panel.append(node("h3","Known limitations","section"));
-    field(panel,"Known limitations",book.project,"Known limitations",null,"Record anything that does not work as your requirements say, or that you could not test.");
+    panel.append(node("h3","Optional setup instructions","section"));
+    field(panel,"Optional setup instructions",book.project,"Optional setup instructions",null,"Give any steps or settings specific to your submission that the lecturer needs before running the tests. Leave blank if the standard lab setup works.");
     for(const wrap of panel.querySelectorAll("h3.section + .wb-field")) wrap.classList.add("plain");
-    if(book.extra) field(panel,"Additional imported text",book,"extra",null,"Review wording from your imported file that did not fit a workbook field.");
+    if(book.project["Earlier feature entries"]) panel.append(node("p","Earlier features are preserved in this file and available when you carry it into Part 2."));
+    if(book.extra) field(panel,"Imported text and earlier results",book,"extra",null,"Check preserved entries and results here. Record fresh outcomes in the Results tab.");
   }
   if(view==="review") {
     const [grid,totals]=reviewTable();
@@ -409,7 +407,7 @@ function render(focusTarget) {
       node("p",started+" of "+book.items.length+" features started. Tests: "+totals.pass+" passed, "+totals.fail+" failed, "+totals.open+" not yet run. Select a feature to work on it."),
       grid,
       node("h3","Download the file for Blackboard","section"),
-      node("p","This file is named REQUIREMENTS_AND_TESTS.md. Upload it on Blackboard. The dated backups from the toolbar are for you to keep and are not submitted."));
+      node("p","Upload "+submissionName+", your source code and one full merged firmware image (*.ino.merged.bin) on Blackboard."));
     // Check before the file that is marked: details filled in, and every planned feature complete for this submission.
     const missing=[["name","Name"],["student number","Student number"],["build id","Build ID"]].filter(([key])=>!detail(key)).map(([,label])=>label);
     const gapped=book.items.filter(f=>f.status!=="Dropped" && issues(f).length);
@@ -417,12 +415,12 @@ function render(focusTarget) {
     check.classList.toggle("done",!missing.length && !gapped.length);
     const list=node("ul");
     list.append(node("li",missing.length ? "Missing in Project details: "+missing.join(", ")+"." : "Name, student number and build ID are filled in."));
-    const what=isFinal() ? "requirements, linked tests and an access route" : "requirements";
+    const what="requirements, linked tests, recorded results and instructions for accessing or observing the feature";
     list.append(node("li",gapped.length ? (book.items.length-gapped.length)+" of "+book.items.length+" features have their "+what+". Still to finish: "+gapped.map(f=>f.label).join(", ")+"." : "Every planned feature has its "+what+"."));
     check.append(node("b",missing.length||gapped.length ? "Before you submit" : "Ready to download"),list);
     const done=node("p","",undefined);done.setAttribute("role","status");
-    const download=()=>{backup(true);done.textContent="Downloaded REQUIREMENTS_AND_TESTS.md at "+clock(new Date().toISOString())+". Upload it on Blackboard with your other files.";};
-    panel.append(check,button("Download REQUIREMENTS_AND_TESTS.md",()=>{
+    const download=()=>{backup(true);done.textContent="Downloaded "+submissionName+" at "+clock(new Date().toISOString())+". Upload it on Blackboard with your source code and full merged firmware image (*.ino.merged.bin).";};
+    panel.append(check,button("Download "+submissionName,()=>{
       if(!missing.length && !gapped.length) {download();return;}
       promptChange("Your file is not complete yet. "+(missing.length?"Project details are missing "+missing.join(", ")+". ":"")+(gapped.length?gapped.length+" features still have gaps. ":"")+"Download it anyway?","Download anyway",download);
     },"primary"),done);
@@ -446,46 +444,146 @@ $("#new-book").onclick=()=>{
   const written=book.items.reduce((n,f)=>n+f.requirements.length+f.tests.length,0);
   const owner=[detail("name"),detail("student number")].filter(Boolean).join(", ");
   promptChange("Start a new workbook? This removes the draft stored in this browser"+(owner?", which belongs to "+owner:"")+". It holds "+written+" requirements and tests. "+
-    "If the work is yours, download a backup first. The feature choices saved in the picker are cleared as well.",
+    "If the work is yours, download a backup first. Your other draft and picker choices stay available.",
     "Remove this draft and start new",()=>{
-      saveList("plan",[]);saveList("menu-settings",[]);
-      book=emptyBook();book.items=features.filter(f=>f.group==="Core").map(f=>featureRecord(f.id,f.label,f.title));
+
+      book=newBook();
       active=book.items[0].id;view="project";tab="Requirements";downloaded="";changed=false;
       persist(false);render();
-      $("#notice").replaceChildren("New workbook started with the 12 core features. Enter your details below, then ");
-      const link=node("a","choose your other features in the picker");link.href="picker.html";$("#notice").append(link,".");
+      $("#notice").textContent="New Part "+part+" workbook started.";
+
     });
 };
-// Shared lab PCs: download a backup, then, once the student has checked it, remove every saved item of this site from the browser.
+// Browser drafts and Markdown share the same workbook structure.
+function readDraft(key) {
+  const raw=localStorage.getItem(key);
+  if(!raw) return null;
+  const saved=JSON.parse(raw);
+  return upgrade(saved.book);
+}
+function sourcePart(draft) {
+  return Number(draft.project["Student details"].match(/^- Submission: Part ([12])\s*$/m)?.[1] || 0);
+}
+function importGuide(incoming, name, original) {
+  const source=sourcePart(incoming);
+  if(source===2 && part===1) throw Error("Open the Part 2 workbook to import this file.");
+  const previousResults=source===1 && part===2;
+  const legacy=source===0;
+  const draft=structuredClone(incoming);
+  if(previousResults && draft.project["Earlier feature entries"]) {
+    const earlier=parseBook(draft.project["Earlier feature entries"]);
+    draft.items.push(...earlier.items.filter(f=>!draft.items.some(current=>current.id===f.id)));
+    draft.project["Earlier feature entries"]="";
+  }
+  const moved=part===1 ? draft.items.filter(f=>!partOneIDs.has(f.id)) : [];
+  const reused=part===2 && (legacy || previousResults) ? draft.items.filter(f=>!inPart(features.find(item=>item.id===f.id) || f)) : [];
+  draft.items=draft.items.filter(f=>!moved.includes(f));
+  for(const f of chosen) {
+    const record=draft.items.find(item=>item.id===f.id);
+    if(!record) draft.items.push(pickedRecord(f));
+    else {
+      record.label=f.label;
+      record.title=scopeTitle(f);
+    }
+  }
+  const prior=[];
+  for(const f of draft.items) {
+    const changedScope=legacy;
+    if(changedScope || previousResults) {
+      if(f.claimed || f.tests.some(t=>t.status!=="Not yet run" || t.observed || t.log)) {
+        prior.push(f.id+": "+JSON.stringify({claimed:f.claimed,tests:f.tests.filter(t=>t.status!=="Not yet run" || t.observed || t.log).map(({id,status,observed,log})=>({id,status,observed,log}))}));
+      }
+      f.claimed=reused.includes(f)?"No":"";f.status=reused.includes(f)?"Dropped":"Planned";
+      for(const t of f.tests) {t.status="Not yet run";t.observed="";t.log="";}
+    }
+  }
+  if(previousResults || legacy) {
+    const details=draft.project["Student details"];
+    draft.project["Student details"]=details.replace(/^- Build ID:.*$/gm,"- Build ID:");
+  }
+  if(moved.length) {
+    const archive=structuredClone(incoming);
+    archive.items=moved;
+    draft.project["Earlier feature entries"]=markdown(archive);
+  }
+  if(prior.length) draft.extra=[draft.extra,"Previous test results for reference. Run the tests on this build.\n"+prior.join("\n")].filter(Boolean).join("\n\n");
+  setPart(draft);
+  const existing=book.items.filter(f=>f.requirements.length || f.tests.length || f.notes.trim() || f.access.trim()).map(f=>f.id);
+  const overlap=draft.items.filter(f=>existing.includes(f.id)).map(f=>f.id);
+  promptChange("Import "+name+" into Part "+part+"? This opens the imported document as the current draft. "+
+    (overlap.length?"Already edited in this draft: "+overlap.join(", ")+". ":"")+
+    (moved.length? "Carried forward when you open this draft in Part 2: "+moved.map(f=>f.id).join(", ")+". ":"")+
+    (reused.length?"Earlier choices kept as unselected entries: "+reused.map(f=>f.id).join(", ")+". Re-select them in the picker to reuse them. ":"")+
+    (legacy && part===1?"Review imported requirements against the new Part 1 scope. ":"")+
+    (previousResults?"Part 1 outcomes stay historical. Enter new results for this build. ":"")+
+    "Download your current draft if you need both copies.",
+    "Import into Part "+part,()=>{
+      try {
+        const previous=localStorage.getItem(storageKey);
+        if(previous && !conflict) localStorage.setItem(storageKey+".before-import",previous);
+      } catch {showImportError(Error("Could not save a recovery copy. Download your current draft before continuing."));return;}
+      backup();
+      if(original) saveOriginal(original, "TM_ORIGINAL_"+stamp(new Date())+".md");
+      book=draft;active=book.items[0].id;view="feature";tab="Requirements";downloaded="";
+      persist();render();$("#recover-import").hidden=false;
+      if(!warning) $("#notice").textContent="Imported into Part "+part+".";
+    });
+}
+function saveOriginal(source, name) {
+  const url=URL.createObjectURL(new Blob([source],{type:"text/markdown;charset=utf-8"}));
+  const link=node("a");link.href=url;link.download=name;
+  document.body.append(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+function showImportError(error) {
+  $("#notice").textContent=error.message;$("#notice").classList.add("warn");
+}
+function importDraft(key, label) {
+  try {
+    const source=readDraft(key);
+    if(!source) throw Error("No "+label+" was found in this browser. Use Import previous work to open a Markdown backup.");
+    importGuide(source,label);
+  } catch(error) {showImportError(error);}
+}
+$("#recover-import").onclick=()=>importDraft(storageKey+".before-import","draft before last import");
+try {$("#recover-import").hidden=!localStorage.getItem(storageKey+".before-import");} catch {}
+$("#recover").onclick=()=>importDraft(legacyKey,"older browser draft");
+$("#carry").onclick=()=>importDraft("setu.tm.2026.workbook.part1","Part 1 browser draft");
+$("#part-"+(part===1?"one":"two")).setAttribute("aria-current","page");
+$("#part-summary").textContent=part===1 ? "Part 1 · Basic monitor" : "Part 2 · Extended monitor";
+$("#pick-features").hidden=part===1;
+$("#carry").hidden=part!==2;
+try {$("#recover").hidden=!localStorage.getItem(legacyKey);} catch {}
 $("#finish").onclick=()=>{
   backup();
-  promptChange("A backup has been downloaded. Check that it is in your Downloads folder, then remove your workbook, feature choices and roadmap ticks from this browser so the next student cannot see them.",
+  promptChange("Download backups for every draft you want to keep before removing your work from this shared PC.",
     "Remove my work from this PC",()=>{
-      try {for(const key of Object.keys(localStorage)) if(key.startsWith("setu.tm.2026.")) localStorage.removeItem(key);} catch {}
-      book=emptyBook();book.items=features.filter(f=>f.group==="Core").map(f=>featureRecord(f.id,f.label,f.title));
-      active=book.items[0].id;view="feature";tab="Requirements";downloaded="";changed=false;lastStored=null;conflict=false;
+      try {
+        for(const [key,name] of [[legacyKey,"OLD"],["setu.tm.2026.workbook.part"+(3-part),"PART_"+(3-part)]]) {
+          const draft=readDraft(key);
+          if(draft) downloadBook(draft,"TM_"+name+"_"+stamp(new Date())+".md");
+        }
+        for(const key of Object.keys(localStorage)) if(key.startsWith("setu.tm.2026.")) localStorage.removeItem(key);
+      } catch(error) {showImportError(error);return;}
+      book=newBook();active=book.items[0].id;view="feature";tab="Requirements";downloaded="";changed=false;lastStored=null;conflict=false;
+      $("#recover").hidden=true;$("#recover-import").hidden=true;
       persist(false);render();
-      $("#notice").textContent="Your work was removed from this browser. Keep your downloaded backup to continue on another computer.";
+      $("#notice").textContent="Your drafts were removed from this browser. Keep your backups.";
     });
 };
 $("#import-file").onchange=async event=>{
   const file=event.target.files[0];if(!file)return;
   try {
-    const incoming=parseBook(await file.text());
-    const count=incoming.items.reduce((n,f)=>n+f.requirements.length,0);
-    promptChange("Open "+file.name+"? Found "+incoming.items.length+" features and "+count+" requirements. "+
-      (incoming.extra?"Additional wording is preserved in Project details. ":"")+"Download your current work before replacing it.",
-      "Open this workbook",()=>{
-        book=incoming;active=book.items[0].id;view="feature";tab="Requirements";downloaded="";
-        persist();render();$("#notice").textContent="Opened "+file.name+".";
-      });
-  } catch(error) {$("#notice").textContent=error.message;$("#notice").classList.add("warn");$("#import-file").value="";}
+    const original=await file.text();
+    const incoming=parseBook(original);
+    importGuide(incoming,file.name,sourcePart(incoming)===0 ? original : "");
+  } catch(error) {showImportError(error);event.target.value="";}
 };
 if(!warning) persist(false);else updateStatus();
-if(params.has("features") && lastStored) {
+if(part===2 && params.has("features") && lastStored) {
   // Picker choices arrive in the address. Additions lose nothing, so they are applied at once.
   // A feature that leaves the plan is removed if it is still empty, and otherwise marked Dropped after the student agrees.
-  const untouched=f=>!f.requirements.length && !f.tests.length && !f.manual.trim() && !f.changes.trim();
+  const untouched=f=>!f.requirements.length && !f.tests.length && !f.manual.trim() && !f.notes.trim() && !f.access.trim();
   const additions=chosen.filter(f=>!book.items.some(old=>old.id===f.id));
   const restored=book.items.filter(f=>f.status==="Dropped" && chosen.some(x=>x.id===f.id));
   const leaving=book.items.filter(f=>!chosen.some(x=>x.id===f.id) && f.status!=="Dropped");
@@ -510,11 +608,11 @@ if(params.has("features") && lastStored) {
   }
   if(removed.length) promptChange(
     "You removed "+removed.map(f=>f.label).join(", ")+" in the picker, but you have already written requirements or tests for "+(removed.length>1?"them":"it")+
-    ". Mark as dropped? The requirements, tests and results stay in the workbook, and you give the reason under Notes.",
+    ". Mark as dropped? The requirements, tests and results stay in the workbook.",
     "Mark as dropped",()=>{
       removed.forEach(f=>{f.status="Dropped";f.claimed="No";});
       persist();render();
     });
-  history.replaceState(null,"",location.pathname);
+  history.replaceState(null,"",location.pathname+"?part=2");
 }
 render();

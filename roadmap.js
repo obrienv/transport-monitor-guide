@@ -1,5 +1,5 @@
 const steps = [...document.querySelectorAll(".step input")];
-const saved = loadList("steps");
+const saved = loadList("steps-two-part");
 function updateProgress() {
   const count = steps.filter(step => step.checked).length;
   const next = steps.find(step => !step.checked)?.closest("article");
@@ -19,7 +19,7 @@ function updateProgress() {
 for (const step of steps) {
   step.checked = saved.includes(step.id);
   step.addEventListener("change", () => {
-    if (!saveList("steps", steps.filter(s => s.checked).map(s => s.id))) {
+    if (!saveList("steps-two-part", steps.filter(s => s.checked).map(s => s.id))) {
       document.querySelector("#save-note").textContent = "Progress lasts for this visit. Browser storage is unavailable.";
     }
     updateProgress();

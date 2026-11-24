@@ -17,11 +17,12 @@
 <div class="hero">
 <div>
 <h1>Transport Monitor</h1>
-<p>Build and test a monitor that travels with sensitive equipment. Use these six steps to plan your work and prepare both submissions.</p>
+<p>Build and test a monitor that travels with sensitive equipment. Build and verify the basic monitor first. Then choose additions and extend it.</p>
 </div>
 <aside class="instrument"><b>Project hardware</b><strong>ESP32-S3 Reverse TFT Feather</strong><span>AHT20 · Temperature and humidity</span><span>ICM-20948 · Acceleration and rotation</span>
 </aside>
 </div>
+<div class="box"><strong>Already started?</strong> Open the <a href="workbook.html?part=1">Part 1 workbook</a>. Choose Import previous work to open older Markdown, or Recover older browser draft on the computer where you worked. Earlier feature entries can carry forward to Part 2.</div>
 <div class="progress">
 <div><b id="progress-count">Your progress</b>
 <p id="next-step" aria-live="polite">
@@ -32,63 +33,63 @@
 </div>
 <section class="milestone">
 <div class="part">
-<h2>Submission 1: Plan and early build</h2><strong>10 marks</strong>
+<h2>Part 1: Basic monitor</h2><strong>10 marks</strong>
 </div>
 <div class="steps">
 <article id="step-1" class="step"><input type="checkbox" id="done-1">
 <div>
-<h3><label for="done-1">1. Choose your features</label>
+<h3><label for="done-1">1. Specify the basic monitor</label>
 </h3>
-<p>Plan the compulsory core, then choose standard features and up to two challenges.</p><a href="picker.html">Open the feature picker</a><a href="brief.html#core">Read the feature list</a>
+<p>Write testable requirements for the compulsory Part 1 features.</p><a href="workbook.html?part=1">Open Part 1 workbook</a><a href="brief.html#early">Read Part 1 scope</a>
 </div>
 </article>
 <article id="step-2" class="step"><input type="checkbox" id="done-2">
 <div>
-<h3><label for="done-2">2. Write your requirements</label>
+<h3><label for="done-2">2. Build the basic monitor</label>
 </h3>
-<p>Open your project workbook. For each feature, write requirements exact enough that another engineer could test them. No test plan is needed yet.</p><a href="workbook.html">Write your requirements</a><a href="brief.html#good-requirement">What a good requirement contains</a><a href="resources.html#read-ex1">Read the worked EX1 example</a>
+<p>Build sensor and fault reporting, a readable TFT interface, and the fixed environmental and 1.5 g acceleration alarms.</p><a href="workbook.html?part=1">Open Part 1 workbook</a><a href="brief.html#good-requirement">What a good requirement contains</a><a href="resources.html#read-ex1">Read the worked EX1 example</a>
 </div>
 </article>
 <article id="step-3" class="step"><input type="checkbox" id="done-3">
 <div>
-<h3><label for="done-3">3. Build the early binary</label>
+<h3><label for="done-3">3. Test and record results</label>
 </h3>
-<p>Start both sensors and report their health (C01), read the AHT20 and the ICM-20948 (C02, C03), and print the live readings and sensor health on the serial port (C12).</p><a href="brief.html#early">Check the early binary scope</a><a href="protocol.html#c12">What C12 prints</a>
+<p>Run tests on the board. Record how to access or observe each feature, the test steps, the expected result and what you observed in the workbook.</p><a href="brief.html#early">Check Part 1 scope</a><a href="protocol.html#c12">What C12 prints</a>
 </div>
 </article>
 <div class="handin"><b>Submit on Blackboard</b>
-<p>Your requirements, plus the early binary.</p><span class="deadline">Deadline to be announced</span>
+<p>Part 1 workbook Markdown, source code and <a href="brief.html#firmware-image">full merged firmware image</a>. Include test results in the workbook and any setup specific to your submission.</p><span class="deadline">Deadline to be announced</span>
 </div>
 </div>
 </section>
 <section class="milestone">
 <div class="part">
-<h2>Submission 2: Build, test and hand over</h2><strong>30 marks</strong>
+<h2>Part 2: Extended monitor</h2><strong>30 marks</strong>
 </div>
 <div class="steps">
 <article id="step-4" class="step"><input type="checkbox" id="done-4">
 <div>
-<h3><label for="done-4">4. Build the rest</label>
+<h3><label for="done-4">4. Choose additions and extend the monitor</label>
 </h3>
-<p>Use your feedback to revise the requirements. Implement the full core, a Home screen and the features in your plan. Challenges also need the serial replay.</p><a href="brief.html#core">Read the feature descriptions</a><a href="brief.html#home">Home screen</a><a href="advanced.html">Challenges</a>
+<p>Carry forward your Part 1 workbook. Add gyro reporting, static tilt, Home navigation and editable limits. Use the picker to choose optional features.</p><a href="workbook.html?part=2">Open Part 2 workbook</a><a href="picker.html">Choose extra features</a><a href="brief.html#core">Read the four compulsory additions</a><a href="brief.html#home">Feature access and testing</a><a href="advanced.html">Challenges</a>
 </div>
 </article>
 <article id="step-5" class="step"><input type="checkbox" id="done-5">
 <div>
 <h3><label for="done-5">5. Test on your board</label>
 </h3>
-<p>Write a test for each requirement and run it on the real board. Record the expected and actual results and keep the evidence. Write your Feature Access Guide and repeat your navigation tests on the final binary.</p><a href="brief.html#tested">Check how testing works</a><a href="brief.html#home">Feature Access Guide</a><a href="workbook.html">Record results in your workbook</a>
+<p>Test additions and rerun relevant Part 1 tests on the final binary. Record the expected and actual results in the workbook. Include access instructions with each feature and repeat your navigation tests on the final binary.</p><a href="brief.html#tested">Check how testing works</a><a href="brief.html#home">Feature access and testing</a><a href="workbook.html?part=2">Record results in your workbook</a>
 </div>
 </article>
 <article id="step-6" class="step"><input type="checkbox" id="done-6">
 <div>
 <h3><label for="done-6">6. Decide what to claim</label>
 </h3>
-<p>Compare your results with your plan. Claim the features you verified and explain each change.</p><a href="brief.html#calc">Check the marking guidance</a><a href="brief.html#plan">Rules for changing your plan</a><a href="workbook.html">Review and download your document</a>
+<p>Claim the features your test results verify.</p><a href="brief.html#calc">Check the marking guidance</a><a href="brief.html#plan">Review the Part 2 workflow</a><a href="workbook.html?part=2">Review and download your document</a>
 </div>
 </article>
 <div class="handin"><b>Submit on Blackboard</b>
-<p>Your final binary, source code and build instructions, requirements, tests with results and evidence, and your Feature Access Guide.</p><span class="deadline">Deadline to be announced</span>
+<p>Part 2 workbook Markdown, source code and <a href="brief.html#firmware-image">full merged firmware image</a>. Include test results, feature access instructions and any setup specific to your submission in the workbook.</p><span class="deadline">Deadline to be announced</span>
 </div>
 </div>
 </section>

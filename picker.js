@@ -38,7 +38,7 @@ function buildOptions() {
     const members = features.filter(f => f.group === group);
     const el = document.createElement(group === "Core" ? "details" : "section");
     const heading = document.createElement(group === "Core" ? "summary" : "h2");
-    heading.textContent = group === "Core" ? "View the 12 compulsory core features" : group;
+    heading.textContent = group === "Core" ? "View the compulsory scope" : group;
     el.append(heading);
     if (group !== "Core" && group !== "Challenges") {
       const intro = document.createElement("p");
@@ -53,11 +53,16 @@ function buildOptions() {
       capNote.textContent = "You have chosen two challenges, so the others are greyed out. Untick one to choose a different challenge.";
       el.append(intro, capNote);
     }
-    for (const f of members) {
-      if (isCore(f)) {
+    if (group === "Core") {
+      for (const [href, text] of [["brief.html#early", "Part 1: nine basic monitor features"], ["brief.html#core", "Part 2A: four compulsory additions"]]) {
         const line = document.createElement("p");
-        line.textContent = f.id + " · " + f.title; el.append(line); continue;
+        const link = document.createElement("a");
+        link.href = href; link.textContent = text; line.append(link); el.append(line);
       }
+      options.append(el);
+      continue;
+    }
+    for (const f of members) {
       const row = document.createElement("label");
       row.className = "option";
       const input = document.createElement("input");
@@ -71,7 +76,7 @@ function buildOptions() {
       if (isChallenge(f)) {
         const link = document.createElement("a");
         link.href = "advanced.html#" + f.id; link.className = "option-link";
-        link.textContent = "Read the " + f.id + " description, baseline and proposed minimum"; el.append(link);
+        link.textContent = "Read the " + f.id + " requirements, baseline and test guidance"; el.append(link);
       }
       controls.set(f.id, {input,detail});
       input.addEventListener("change", () => {
@@ -119,14 +124,14 @@ function marksTable(items, challenges) {
   caption.textContent = "Marks out of 40";
   caption.style.textAlign = "left"; caption.style.fontWeight = "650"; table.append(caption);
   const rows = [
-    ["First submission: requirements and early binary", "10", false],
-    ["Final: core, all 12 features", "8", false],
-    ["Final: challenges, " + challenges + " of 2", challenges ? "up to " + challenges * 5 : "0", !challenges]
+    ["Part 1: basic monitor", "10", false],
+    ["Part 2A: compulsory additions and integration", "8", false],
+    ["Part 2C: challenges, " + challenges + " of 2", challenges ? "up to " + challenges * 5 : "0", !challenges]
   ];
   const groups = [...new Set(features.filter(isStandard).map(f => f.group))];
   groups.forEach((group, i) => {
     const n = items.filter(f => f.group === group).length;
-    rows.splice(2 + i, 0, ["Final: " + group.toLowerCase() + ", " + n + " of 3", n ? "up to " + n : "0", !n]);
+    rows.splice(2 + i, 0, ["Part 2B: " + group.toLowerCase() + ", " + n + " of 3", n ? "up to " + n : "0", !n]);
   });
   for (const [name, share, off] of rows) {
     const tr = table.insertRow(); if (off) tr.className = "off";
@@ -137,8 +142,8 @@ function marksTable(items, challenges) {
   box.append(table);
   const notes = [];
   notes.push("Each standard feature is worth 1 mark, with at most 3 per category, so the four categories give up to 12. A prerequisite that is added for you counts as one of the 3.");
-    notes.push("These are the most each part can earn. Each feature is marked half on how well it works and half on your requirements, tests and evidence for it.");
-  notes.push("The first submission is marked on how complete and exact your requirements are, not on how many features you plan.");
+  notes.push("Standard features and challenges are marked half on operation and half on verification. See the project brief for the Part 1 marking breakdown.");
+  notes.push("This table uses the provisional marking split in the project brief.");
   const note = document.createElement("p");
   note.className = "note"; note.textContent = notes.join(" "); box.append(note);
 }
@@ -171,7 +176,7 @@ function refresh() {
     const n = items.filter(f => f.group === note.dataset.group).length;
     note.textContent = "Choose up to 3, including prerequisites. " + n + " of 3 chosen." + (n === 3 ? " Untick one to choose a different feature." : "");
   }
-  document.querySelector("#counts").textContent = "12 core · " + standard + " standard · " + challenges + " of 2 challenges";
+  document.querySelector("#counts").textContent = "9 Part 1 + 4 Part 2A · " + standard + " standard · " + challenges + " of 2 challenges";
   document.querySelector("#plan-bar-counts").textContent = standard + " standard · " + challenges + " of 2 challenges";
   document.querySelector("#dependencies").textContent = added.length ? "Added as prerequisites: " + added.join(", ") + "." : "";
   marksTable(items, challenges);
@@ -181,7 +186,7 @@ function refresh() {
   document.querySelector("#download-note").textContent = openWorkbook.disabled ? "Choose the features supplying your P02 settings before you open the workbook." : (!savedPlan || !savedSources ? "Selections last for this visit only, because browser storage is unavailable." : "");
 }
 openWorkbook.addEventListener("click", () => {
-  const params = new URLSearchParams({features:plan().map(f=>f.id).join(","), settings:[...sources].join(",")});
+  const params = new URLSearchParams({part:"2", features:plan().map(f=>f.id).join(","), settings:[...sources].join(",")});
   location.href = "workbook.html?" + params;
 });
 buildOptions();

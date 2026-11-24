@@ -105,3 +105,7 @@ table.catalog { table-layout:fixed } table.catalog th:first-child { width:6.2rem
 }
 @media(max-width:720px) { .hero,.milestone,.picker-layout,.downloads { grid-template-columns:1fr; gap:12px }.mast { flex-wrap:wrap }.tabs { gap:2px 14px }.tabs a { padding:5px 0 }.progress { align-items:flex-start; flex-direction:column }.plan { position:static; max-height:none }.instrument { padding:12px 16px }.milestone { margin-top:20px }.hero { padding-bottom:18px } main { padding-top:24px } main nav ol { columns:1 } footer { flex-wrap:wrap } td,th { padding:5px; font-size:.86rem } table { display:block; overflow-x:auto } table.catalog { display:table; table-layout:auto } table.catalog th { width:auto !important } .facts { grid-template-columns:1fr; gap:0 } .facts dd { margin-bottom:6px } progress { width:100% } .progress > div:last-child { width:100% } }
 @media print { header,footer,.skip,.progress,.plan button { display:none } main { width:100%; padding:0 } h2,h3 { break-after:avoid } tr,.step { break-inside:avoid } }
+
+/* Short descriptions under the standard feature titles in the brief. */
+.catalog details summary { cursor: pointer; }
+.catalog details p { margin: 0.5em 0 0.25em; color: var(--muted); }
